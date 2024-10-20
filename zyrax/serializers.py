@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import Banner, Offer, UserProfile , CommunityPost, PostImage, Comment
+from .models import Banner, Offer,Zyrax_Class, UserProfile , CommunityPost, PostImage, Comment
 from django.contrib.auth.models import User
 
 class BannerSerializer(serializers.ModelSerializer):
@@ -12,6 +12,11 @@ class OfferSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offer
         fields = ['id', 'title', 'amount', 'discount', 'duration', 'description', 'is_active']
+
+class ClassSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Zyrax_Class
+        fields = '__all__'
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
