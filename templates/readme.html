@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zyrax Backend Service Documentation</title>
+    <!-- Load the static files template tag -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Zyrax Docs</h2>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#usage">How to Use</a></li>
+                <li><a href="#api-endpoints">API Endpoints</a></li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1>Zyrax Backend Service Documentation</h1>
+                <p>Welcome to the official documentation for the Zyrax Backend Service. Below you'll find details on how to use the service, its features, and the available API endpoints.</p>
+            </div>
+
+            <!-- Features Section -->
+            <section id="features">
+                <h2>Features</h2>
+                <p>The Zyrax Backend Service provides the following features:</p>
+                <ul>
+                    <li>Efficient and scalable data processing.</li>
+                    <li>Secure API for interacting with backend systems.</li>
+                    <li>Job queuing and management for batch operations.</li>
+                    <li>Asynchronous API for long-running tasks.</li>
+                </ul>
+            </section>
+
+            <!-- How to Use Section -->
+            <section id="usage">
+                <h2>How to Use</h2>
+                <h3>Authentication</h3>
+                <p>To use the Zyrax Backend Service, you'll need to authenticate using a valid API key. Include the following header in your requests:</p>
+                <pre><code>Authorization: Bearer your_api_key_here</code></pre>
+
+                <h3>Basic Request Example</h3>
+                <p>Here’s an example of how to make a basic POST request:</p>
+                <pre><code>
+POST /process
+Host: api.zyraxservice.com
+Authorization: Bearer your_api_key_here
+Content-Type: application/json
+
+{
+    "data": "your_data_here"
+}
+                </code></pre>
+            </section>
+
+            <!-- API Endpoints Section -->
+            <section id="api-endpoints">
+                <h2>API Endpoints</h2>
+                <h3>GET /status</h3>
+                <p>Check the status of the service or a specific job.</p>
+                <pre><code>
+GET /status/{job_id}
+Authorization: Bearer your_api_key_here
+                </code></pre>
+
+                <h3>POST /process</h3>
+                <p>Submit a new job for processing:</p>
+                <pre><code>
+POST /process
+Authorization: Bearer your_api_key_here
+Content-Type: application/json
+
+{
+    "data": "your_data_here",
+    "type": "conversion"
+}
+                </code></pre>
+
+                <h3>GET /result/{job_id}</h3>
+                <p>Retrieve the results of a job:</p>
+                <pre><code>
+GET /result/{job_id}
+Authorization: Bearer your_api_key_here
+                </code></pre>
+            </section>
+        </div>
+    </div>
+
+    <!-- Cookie Banner -->
+    <div class="cookie-banner">
+        <p>This website uses cookies to ensure you get the best experience.</p>
+        <button id="accept-button" class="btn">Accept</button>
+        <button id="decline-button" class="btn">Decline</button>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{% static 'script/scripts.js' %}"></script>
+</body>
+</html>
