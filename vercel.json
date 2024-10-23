@@ -2,26 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "'zyloZyraxBackend/wsgi.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9.13" }
-    },
-    {
-      "src": "build_files.sh",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "staticfiles"
-      }
+      "src": "zyloZyraxBackend/wsgi.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "'zyloZyraxBackend/wsgi.py"
+      "dest": "zyloZyraxBackend/wsgi.py"
     }
   ]
 }
