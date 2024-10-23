@@ -1,2 +1,9 @@
+#!/bin/bash
+
+# Install dependencies
 pip install -r requirements.txt
-python3.9 manage.py collectstatic
+
+# Collect static files
+python manage.py collectstatic --noinput
+
+# Any other build steps
