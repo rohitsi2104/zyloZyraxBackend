@@ -58,3 +58,19 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.user.username} on post {self.post.id}"
+
+
+
+class Zyrax_Class(models.Model):
+    title = models.CharField(max_length=255)
+    time = models.TimeField()
+    duration = models.PositiveIntegerField()  # duration in minutes
+    zoom_link = models.URLField()
+    class_date = models.DateField()
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Classes"  # This will display 'Banner' instead of 'Zylo_Banner'
+        verbose_name_plural = "Classes"  # This will display 'Banners' in plural form (optional)

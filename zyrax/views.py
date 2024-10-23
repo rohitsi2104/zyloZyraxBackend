@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile
-from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile , Zyrax_Class
+from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer ,ClassSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -58,6 +58,13 @@ def get_banners(request):
 def get_offers(request):
     offers = Offer.objects.filter(is_active=True)
     serializer = OfferSerializer(offers, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_classes(request):
+    classes = Zyrax_Class.objects.all()
+    serializer = ClassSerializer(classes, many=True)
     return Response(serializer.data)
 
 # User Registration API (via OTP)
