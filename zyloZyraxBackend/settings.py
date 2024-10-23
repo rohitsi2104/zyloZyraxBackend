@@ -342,8 +342,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 #     MEDIA_URL = '/media/'
 #     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AWS_ACCESS_KEY_ID = 'AKIATCKAOBGJYE6OEPEM'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'zyraximages'
 AWS_S3_REGION_NAME = 'ap-southeast-2'  # Replace with your bucket's region
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
