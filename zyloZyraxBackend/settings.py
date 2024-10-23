@@ -29,10 +29,14 @@ SECRET_KEY = 'django-insecure-hdg0x5q-fio!57n0_8b^vh(ev+*f1+mrk-z196y_p&i8^rxidr
 DEBUG = True
 
 ALLOWED_HOSTS = ['.vercel.app','localhost', '127.0.0.1']
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000','http://localhost:5173'  # Your React app's URL
-]
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',  # React app
+#     'http://localhost:5173',  # Vite (if using)
+#     # Add other allowed domains here
+# ]
 
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -144,6 +148,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = os.path.join(BASE_DIR, 'static'),
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
