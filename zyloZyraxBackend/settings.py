@@ -19,6 +19,8 @@ import tempfile
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATABASE_URL = 'postgresql://postgres:uVBqHJvVndoQCUEESMImRCnHwTxQjWPw@autorack.proxy.rlwy.net:59023/railway'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -103,12 +105,23 @@ WSGI_APPLICATION = 'zyloZyraxBackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(tempfile.gettempdir(), 'db.sqlite3'),
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'railway',
+            'USER': 'postgres',
+            'PASSWORD': 'RcbamjLYuaPjxBZeSCfLcaBEnVnBxkuz',
+            'HOST': 'meticulous-empathy.railway.internal',
+            'PORT': '5432',
+
     }
 }
+
 
 
 # Password validation
