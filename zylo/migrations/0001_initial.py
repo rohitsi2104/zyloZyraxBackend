@@ -32,4 +32,7 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(default=True)),
             ],
         ),
+
+
+
     ]

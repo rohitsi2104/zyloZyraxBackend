@@ -85,7 +85,8 @@ def register(request):
         if User.objects.filter(username=phone_number).exists():
             return Response({"error": "Phone number already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
+        otp = str(random.randint(100000, 999999))
+        print(otp)# Generate a 6-digit OTP
         cache.set(f'otp_{phone_number}', otp, timeout=300)
         send_otp(phone_number, otp)
 
@@ -172,11 +173,13 @@ def admin_register(request):
 # Login View
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def login(request):
+def login(request): 
     phone_number = request.data.get('phone_number')
+    print(phone_number)
     password = request.data.get('password')
 
     user = User.objects.filter(username=phone_number).first()
+    print(user)
     if user and user.check_password(password):
         token_obtain_view = TokenObtainPairView.as_view()
         return token_obtain_view(request)

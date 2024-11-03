@@ -2,9 +2,8 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-from .models import Zylo_Banner, Zylo_Offer
-from .serializers import BannerSerializer, OfferSerializer
-
+from .models import Zylo_Banner, Zylo_Offer, Zylo_Class
+from .serializers import BannerSerializer, OfferSerializer, ClassSerializer
 
 
 @api_view(['GET'])
@@ -20,4 +19,12 @@ def get_banners(request):
 def get_offers(request):
     offers = Zylo_Offer.objects.filter(is_active=True)
     serializer = OfferSerializer(offers, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_classes(request):
+    classes = Zylo_Class.objects.all()
+    serializer = ClassSerializer(classes, many=True)
     return Response(serializer.data)

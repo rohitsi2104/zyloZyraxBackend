@@ -27,6 +27,18 @@ class Zylo_Offer(models.Model):
     def __str__(self):
         return self.title
 
+class Zylo_Class(models.Model):
+    title = models.CharField(max_length=255)
+    time = models.TimeField()
+    duration = models.PositiveIntegerField()  # duration in minutes
+    zoom_link = models.URLField()
+    class_date = models.DateField()
+
+    def __str__(self):
+        return self.title
+
     class Meta:
-        verbose_name = "Offers"  # This will display 'Banner' instead of 'Zylo_Banner'
-        verbose_name_plural = "Offers"  # This will display 'Banners' in plural form (optional)
+        verbose_name = "ZyloClasses"  # This will display 'Banner' instead of 'Zylo_Banner'
+        verbose_name_plural = "ZyloClasses"  # This will display 'Banners' in plural form (optional)
+
+
