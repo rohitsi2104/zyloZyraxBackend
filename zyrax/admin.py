@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class , Tutors
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post
 
 
 # Custom user creation form
@@ -56,3 +56,6 @@ class ClassAdmin(admin.ModelAdmin):
 class ClassAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'description')
 
+@admin.register(Service_Post)
+class Service_PostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description')

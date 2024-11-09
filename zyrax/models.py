@@ -94,3 +94,16 @@ class Zyrax_Class(models.Model):
     class Meta:
         verbose_name = "Classes"  # This will display 'Banner' instead of 'Zylo_Banner'
         verbose_name_plural = "Classes"  # This will display 'Banners' in plural form (optional)
+
+
+class Service_Post(models.Model):
+    title = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='service/')
+    description = models.TextField()
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Services"
+        verbose_name_plural = "Services"

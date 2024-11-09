@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile , Zyrax_Class, Tutors
-from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer ,ClassSerializer, TutorProfileSerializer
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile , Zyrax_Class, Tutors , Service_Post
+from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer ,ClassSerializer, TutorProfileSerializer,ServicePostSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -228,6 +228,15 @@ def get_tutor_profile(request):
     serializer = TutorProfileSerializer(tutors, many=True)
     return Response(serializer.data)
 
+
+
+# Service_Post
+@api_view(['Get'])
+@permission_classes([AllowAny])
+def service_post(request):
+    service_post = Service_Post.objects.all()
+    serializer = ServicePostSerializer(service_post, many=True)
+    return Response(serializer.data)
 # Token Views
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (AllowAny,)
