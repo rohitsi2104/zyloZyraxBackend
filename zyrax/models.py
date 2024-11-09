@@ -1,8 +1,8 @@
-
 # content/models.py
 
 from django.db import models
 from django.contrib.auth.models import User
+
 
 class Banner(models.Model):
     title = models.CharField(max_length=255)
@@ -11,6 +11,23 @@ class Banner(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Tutors(models.Model):
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='tutorImage/')
+    video_link = models.URLField(max_length=500, blank=True, null=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+    class Meta:
+        verbose_name = "Tutor Profile"
+        verbose_name_plural = "Tutors Profile"
+
+
 
 class Offer(models.Model):
     title = models.CharField(max_length=255)
@@ -23,6 +40,7 @@ class Offer(models.Model):
     def __str__(self):
         return self.title
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to the User model
     first_name = models.CharField(max_length=30)
@@ -33,6 +51,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username  # Return the username as the string representation
 
+
 class CommunityPost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link to user
     content = models.TextField(blank=True)  # Content of the post
@@ -41,6 +60,7 @@ class CommunityPost(models.Model):
     def __str__(self):
         return f"{self.user.username}'s post on {self.created_at}"
 
+
 # Image Model for Community Posts
 class PostImage(models.Model):
     post = models.ForeignKey(CommunityPost, related_name='images', on_delete=models.CASCADE)  # Link to community post
@@ -48,6 +68,7 @@ class PostImage(models.Model):
 
     def __str__(self):
         return f"Image for post {self.post.id}"
+
 
 # Comment Model
 class Comment(models.Model):
@@ -58,7 +79,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.user.username} on post {self.post.id}"
-
 
 
 class Zyrax_Class(models.Model):

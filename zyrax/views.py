@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile , Zyrax_Class
-from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer ,ClassSerializer
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile , Zyrax_Class, Tutors
+from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer ,ClassSerializer, TutorProfileSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -219,6 +219,13 @@ def get_comments(request, post_id):
     post = CommunityPost.objects.get(id=post_id)
     comments = post.comments.all()
     serializer = CommentSerializer(comments, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_tutor_profile(request):
+    tutors = Tutors.objects.all()
+    serializer = TutorProfileSerializer(tutors, many=True)
     return Response(serializer.data)
 
 # Token Views
