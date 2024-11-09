@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors
+from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors, Service_Post
 from django.contrib.auth.models import User
 
 
@@ -70,3 +70,9 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'post', 'user', 'content', 'created_at']
+
+
+class ServicePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service_Post
+        fields = ['id', 'title', 'image', 'description']
