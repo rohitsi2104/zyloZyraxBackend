@@ -11,7 +11,11 @@ from .views import (
     create_comment,
     get_comments,
     admin_register,
-    get_classes
+    get_classes,
+    service_post
+
+
+
 )
 
 urlpatterns = [
@@ -27,5 +31,6 @@ urlpatterns = [
     path('posts/<int:post_id>/comments/create/', create_comment, name='create_comment'),
     path('admin/register/', admin_register, name='admin-register'),
     path('classes/', get_classes, name='get_classes'),
+    path('service-post/', service_post, name='service_post'),
 
 ]

@@ -3,8 +3,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile , Zyrax_Class
-from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer ,ClassSerializer
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Service_Post
+from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
+    CommentSerializer, ClassSerializer, Service_PostSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -60,6 +61,15 @@ def get_offers(request):
     serializer = OfferSerializer(offers, many=True)
     return Response(serializer.data)
 
+# Service_Post
+@api_view(['Get'])
+@permission_classes([AllowAny])
+def service_post(request):
+    service_post = Service_Post.objects.all()
+    serializer = Service_PostSerializer(service_post, many=True)
+    return Response(serializer.data)
+
+# Classes
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_classes(request):
@@ -100,6 +110,9 @@ def register(request):
         return Response({"message": "OTP sent to your phone"}, status=status.HTTP_200_OK)
     else:
         return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 # Verify OTP
 @api_view(['POST'])

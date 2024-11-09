@@ -30,6 +30,8 @@ class UserProfile(models.Model):
     phone_number = models.CharField(max_length=15, unique=True)
     date_of_birth = models.DateField()
 
+
+
     def __str__(self):
         return self.user.username  # Return the username as the string representation
 
@@ -74,3 +76,12 @@ class Zyrax_Class(models.Model):
     class Meta:
         verbose_name = "Classes"  # This will display 'Banner' instead of 'Zylo_Banner'
         verbose_name_plural = "Classes"  # This will display 'Banners' in plural form (optional)
+
+class Service_Post(models.Model):
+    title = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='service/')
+    description = models.TextField()
+
+    def __str__(self):
+        return self.title
+

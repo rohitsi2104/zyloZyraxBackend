@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import Banner, Offer,Zyrax_Class, UserProfile , CommunityPost, PostImage, Comment
+from .models import Banner, Offer,Zyrax_Class, UserProfile , CommunityPost, PostImage, Comment, Service_Post
 from django.contrib.auth.models import User
 
 class BannerSerializer(serializers.ModelSerializer):
@@ -22,6 +22,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['id', 'first_name', 'last_name', 'phone_number', 'date_of_birth']
+
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()  # Nested UserProfile
@@ -58,3 +59,9 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'post', 'user', 'content', 'created_at']
+
+# Service Post
+class Service_PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service_Post
+        fields = ['id', 'title', 'image', 'description']
