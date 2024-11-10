@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors, Service_Post
+from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors, Service_Post, \
+    Attendance
 from django.contrib.auth.models import User
 
 
@@ -76,3 +77,10 @@ class ServicePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service_Post
         fields = ['id', 'title', 'image', 'description']
+
+
+class AttendanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attendance
+        fields = ['id', 'user', 'date', 'created_at']
+        read_only_fields = ['user', 'created_at']
