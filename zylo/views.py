@@ -3,10 +3,13 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
+from rest_framework.views import APIView
+
 from .models import Zylo_Banner, Zylo_Offer, CommunityPost, PostImage, Comments, UserProfile, Zylo_Class, Tutors, \
-    Service_Post, Attendance
+    Service_Post, Attendance, UserAdditionalInfo
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
-    CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer
+    CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
+    FullUserProfileSerializer, UserAdditionalInfoSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -314,3 +317,38 @@ class AttendanceViewSet(viewsets.ViewSet):
         ]
 
         return Response(attendance_data, status=status.HTTP_200_OK)
+
+
+class UserProfileDetailsView(APIView):
+    def get(self, request):
+        user_profile = UserProfile.objects.get(user=request.user)
+        serializer = FullUserProfileSerializer(user_profile)
+        return Response(serializer.data)
+
+
+@api_view(['POST'])
+def create_or_update_user_additional_info(request, user_id):
+    try:
+        # Get the User instance using the provided user_id
+        user = User.objects.get(id=user_id)
+
+        # Fetch the related UserProfile using the related_name 'zyrax_user_profile'
+        user_profile = user.zyrax_user_profile  # Using the related_name
+
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except UserProfile.DoesNotExist:
+        return Response({"detail": "UserProfile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Create or update UserAdditionalInfo for the user_profile
+    additional_info, created = UserAdditionalInfo.objects.get_or_create(user_profile=user_profile)
+
+    # Serialize the data from the request and update the UserAdditionalInfo instance
+    serializer = UserAdditionalInfoSerializer(additional_info, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

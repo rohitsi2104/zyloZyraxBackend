@@ -14,8 +14,9 @@ from .views import (
     get_classes,
     get_tutor_profile,
     service_post,
-    AttendanceViewSet
-
+    AttendanceViewSet,
+    UserProfileDetailsView,
+    create_or_update_user_additional_info
 )
 
 
@@ -37,4 +38,6 @@ urlpatterns = [
     path('attendance/mark_attendance/', AttendanceViewSet.as_view({'post': 'mark_attendance'}), name='mark_attendance'),
     path('attendance/monthly_attendance/<int:user_id>/', AttendanceViewSet.as_view({'get': 'monthly_attendance'}),
          name='monthly_attendance'),
+    path('profile/details/', UserProfileDetailsView.as_view(), name='profile_details'),
+    path('user-profile/<int:user_id>/additional-info/', create_or_update_user_additional_info, name='user-profile-additional-info'),
 ]

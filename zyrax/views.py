@@ -3,10 +3,14 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
+from rest_framework.views import APIView
+import logging
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
-    Attendance
+    Attendance, UserAdditionalInfo
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
-    CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer
+    CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
+    FullUserProfileSerializer, UserAdditionalInfoSerializer
+
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -98,6 +102,7 @@ def register(request):
         otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
         cache.set(f'otp_{phone_number}', otp, timeout=300)
         send_otp(phone_number, otp)
+        print(otp)
 
         cache.set(f'registration_data_{phone_number}', {
             'first_name': first_name,
@@ -141,6 +146,46 @@ def verify_otp(request):
             return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def verify_otp(request):
+#     phone_number = request.data.get('phone_number')
+#     otp_entered = request.data.get('otp')
+#     stored_otp = cache.get(f'otp_{phone_number}')
+#
+#     if stored_otp and stored_otp == otp_entered:
+#         registration_data = cache.get(f'registration_data_{phone_number}')
+#         if registration_data:
+#             # Create the user
+#             user = User.objects.create_user(
+#                 username=phone_number,
+#                 password=registration_data['password'],
+#                 first_name=registration_data['first_name'],
+#                 last_name=registration_data['last_name']
+#             )
+#
+#             # Logging to confirm user creation
+#             logging.info(f"User created: {user.username}")
+#
+#             # Create UserProfile
+#             UserProfile.objects.create(
+#                 user=user,
+#                 first_name=registration_data['first_name'],
+#                 last_name=registration_data['last_name'],
+#                 phone_number=phone_number,
+#                 date_of_birth=registration_data['date_of_birth']
+#             )
+#
+#             # Clear cache
+#             cache.delete(f'registration_data_{phone_number}')
+#
+#             return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+#         else:
+#             return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
+#     else:
+#         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Admin Register User API (no OTP)
@@ -194,6 +239,29 @@ def login(request):
         token_obtain_view = TokenObtainPairView.as_view()
         return token_obtain_view(request)
     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def login(request):
+#     phone_number = request.data.get('phone_number')
+#     password = request.data.get('password')
+#
+#     # Check if the user exists and verify the password
+#     user = User.objects.filter(username=phone_number).first()
+#     if user and user.check_password(password):
+#         # Prepare data for token generation
+#         data = {
+#             'username': phone_number,
+#             'password': password
+#         }
+#
+#         # Create the token view and generate the token manually
+#         token_obtain_view = TokenObtainPairView.as_view()
+#         response = token_obtain_view(request._request)  # Pass original request
+#
+#         return response
+#
+#     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 # Community Post API Endpoints
@@ -322,3 +390,38 @@ class AttendanceViewSet(viewsets.ViewSet):
         ]
 
         return Response(attendance_data, status=status.HTTP_200_OK)
+
+
+class UserProfileDetailsView(APIView):
+    def get(self, request):
+        user_profile = UserProfile.objects.get(user=request.user)
+        serializer = FullUserProfileSerializer(user_profile)
+        return Response(serializer.data)
+
+
+@api_view(['POST'])
+def create_or_update_user_additional_info(request, user_id):
+    try:
+        # Get the User instance using the provided user_id
+        user = User.objects.get(id=user_id)
+
+        # Fetch the related UserProfile using the related_name 'zyrax_user_profile'
+        user_profile = user.zyrax_user_profile  # Using the related_name
+
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except UserProfile.DoesNotExist:
+        return Response({"detail": "UserProfile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Create or update UserAdditionalInfo for the user_profile
+    additional_info, created = UserAdditionalInfo.objects.get_or_create(user_profile=user_profile)
+
+    # Serialize the data from the request and update the UserAdditionalInfo instance
+    serializer = UserAdditionalInfoSerializer(additional_info, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

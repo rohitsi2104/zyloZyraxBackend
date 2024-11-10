@@ -128,3 +128,21 @@ class Tutors(models.Model):
     class Meta:
         verbose_name = "Tutor Profile"
         verbose_name_plural = "Tutors Profile"
+
+
+class UserAdditionalInfo(models.Model):
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other')
+    ]
+
+    user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='additional_info')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Height in cm
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Weight in kg
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user_profile.user.username}'s Additional Info"
