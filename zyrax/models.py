@@ -14,21 +14,6 @@ class Banner(models.Model):
         return self.title
 
 
-class Tutors(models.Model):
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='tutorImage/')
-    video_link = models.URLField(max_length=500, blank=True, null=True)
-    description = models.TextField()
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
-
-    class Meta:
-        verbose_name = "Tutor Profile"
-        verbose_name_plural = "Tutors Profile"
-
-
 class Offer(models.Model):
     title = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -42,11 +27,11 @@ class Offer(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to the User model
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='zyrax_user_profile')
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     phone_number = models.CharField(max_length=15, unique=True)
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.user.username  # Return the username as the string representation
@@ -120,3 +105,36 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.date}"
+
+
+class Tutors(models.Model):
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='tutorImage/')
+    video_link = models.URLField(max_length=500, blank=True, null=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+    class Meta:
+        verbose_name = "Tutor Profile"
+        verbose_name_plural = "Tutors Profile"
+
+
+class UserAdditionalInfo(models.Model):
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other')
+    ]
+
+    user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='additional_info')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Height in cm
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Weight in kg
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user_profile.user.username}'s Additional Info"

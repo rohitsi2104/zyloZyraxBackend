@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors, Service_Post, \
-    Attendance
+    Attendance, UserAdditionalInfo
 from django.contrib.auth.models import User
 
 
@@ -84,3 +84,24 @@ class AttendanceSerializer(serializers.ModelSerializer):
         model = Attendance
         fields = ['id', 'user', 'date', 'created_at']
         read_only_fields = ['user', 'created_at']
+
+
+class UserSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
+
+
+class UserAdditionalInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAdditionalInfo
+        fields = ['profile_picture', 'height', 'weight', 'gender', 'address']
+
+
+class FullUserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerialize()
+    additional_info = UserAdditionalInfoSerializer(read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'first_name', 'last_name', 'phone_number', 'date_of_birth', 'additional_info']
