@@ -36,4 +36,3 @@ urlpatterns = [
     path('attendance/monthly_attendance/<int:user_id>/', AttendanceViewSet.as_view({'get': 'monthly_attendance'}),
          name='monthly_attendance'),
 ]
-Cre
