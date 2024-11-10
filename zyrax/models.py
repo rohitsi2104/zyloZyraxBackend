@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class Banner(models.Model):
@@ -26,7 +27,6 @@ class Tutors(models.Model):
     class Meta:
         verbose_name = "Tutor Profile"
         verbose_name_plural = "Tutors Profile"
-
 
 
 class Offer(models.Model):
@@ -107,3 +107,16 @@ class Service_Post(models.Model):
     class Meta:
         verbose_name = "Services"
         verbose_name_plural = "Services"
+
+
+class Attendance(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now)  # Automatically set to today's date
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'date')  # Ensure one entry per user per day
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.date}"

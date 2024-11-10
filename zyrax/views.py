@@ -1,10 +1,11 @@
+from datetime import datetime, timedelta
 
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile , Zyrax_Class, Tutors , Service_Post
-from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer ,ClassSerializer, TutorProfileSerializer,ServicePostSerializer
+from rest_framework import status, viewsets, permissions
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, Attendance
+from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer, ClassSerializer, TutorProfileSerializer,ServicePostSerializer, AttendanceSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -13,6 +14,7 @@ import string
 import http.client
 import json
 from django.shortcuts import render
+from django.utils import timezone
 from django.conf import settings
 
 # Define the Msg91 authentication and template IDs
@@ -244,3 +246,61 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = (AllowAny,)
 
+
+class AttendanceViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def mark_attendance(self, request):
+        user = request.user
+        today = timezone.now().date()
+
+        if Attendance.objects.filter(user=user, date=today).exists():
+            return Response({"detail": "Attendance already marked for today."}, status=status.HTTP_400_BAD_REQUEST)
+
+        attendance = Attendance.objects.create(user=user, date=today)
+        serializer = AttendanceSerializer(attendance)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], url_path='monthly_attendance/(?P<user_id>[^/.]+)')
+    def monthly_attendance(self, request, user_id=None):
+        """
+        Retrieve monthly attendance for a specific user to show on a calendar.
+        """
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        month_str = request.query_params.get('month')
+        year_str = request.query_params.get('year')
+
+        if not month_str or not year_str:
+            return Response({"detail": "Month and year parameters are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            month = int(month_str)
+            year = int(year_str)
+            start_date = datetime(year, month, 1).date()
+            end_date = (start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        except ValueError:
+            return Response({"detail": "Invalid month or year format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch attendance records for the specified month
+        attendance_records = Attendance.objects.filter(user=user, date__range=[start_date, end_date])
+
+        # Create a dictionary for the entire month with default "Absent" status
+        days_in_month = (end_date - start_date).days + 1
+        attendance_summary = {start_date + timedelta(days=i): "Absent" for i in range(days_in_month)}
+
+        # Mark the dates the user was present
+        for record in attendance_records:
+            attendance_summary[record.date] = "Present"
+
+        # Convert attendance_summary to a list of dictionaries for JSON response
+        attendance_data = [
+            {"date": day.strftime("%Y-%m-%d"), "status": status}
+            for day, status in attendance_summary.items()
+        ]
+
+        return Response(attendance_data, status=status.HTTP_200_OK)
