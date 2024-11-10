@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
-from .models import Zylo_Banner, Zylo_Offer
+from .models import Zylo_Banner, Zylo_Offer, Zylo_Class,Tutors, Service_Post
 
 
 # Custom user creation form
@@ -47,3 +47,14 @@ class BannerAdmin(admin.ModelAdmin):
 class OfferAdmin(admin.ModelAdmin):
     list_display = ('title', 'amount', 'discount', 'duration', 'is_active')  # Ensure 'is_active' is a field in the Zylo_Offer model
 
+@admin.register(Zylo_Class)
+class ClassAdmin(admin.ModelAdmin):
+    list_display = ('title', 'time', 'duration', 'zoom_link', 'class_date')
+
+@admin.register(Tutors)
+class ClassAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'description')
+
+@admin.register(Service_Post)
+class Service_PostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description')

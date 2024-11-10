@@ -72,7 +72,7 @@ class PostImage(models.Model):
 
 # Comment Model
 class Comment(models.Model):
-    post = models.ForeignKey(CommunityPost, related_name='comments', on_delete=models.CASCADE)  # Link to community post
+    post = models.ForeignKey(CommunityPost,  on_delete=models.CASCADE, related_name='zyrax_comments')  # Link to community post
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link to user
     content = models.TextField()  # Content of the comment
     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the comment is created
@@ -110,7 +110,7 @@ class Service_Post(models.Model):
 
 
 class Attendance(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='zyrax_attendance')
     date = models.DateField(default=timezone.now)  # Automatically set to today's date
     created_at = models.DateTimeField(auto_now_add=True)
 

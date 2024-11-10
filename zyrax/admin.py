@@ -59,3 +59,5 @@ class ClassAdmin(admin.ModelAdmin):
 @admin.register(Service_Post)
 class Service_PostAdmin(admin.ModelAdmin):
     list_display = ('title', 'description')
+
+
