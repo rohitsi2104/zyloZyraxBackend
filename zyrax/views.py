@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
-
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, Attendance
-from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, CommentSerializer, ClassSerializer, TutorProfileSerializer,ServicePostSerializer, AttendanceSerializer
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
+    Attendance
+from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
+    CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -20,6 +21,7 @@ from django.conf import settings
 # Define the Msg91 authentication and template IDs
 YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
 AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
+
 
 # Function to send OTP via Msg91
 def send_otp(phone_number, otp):
@@ -37,14 +39,17 @@ def send_otp(phone_number, otp):
     data = res.read()
     return json.loads(data.decode("utf-8"))
 
+
 # Function to generate a random password
 def generate_random_password(length=8):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
+
 # Homepage View
 def homepage_view(request):
     return render(request, 'readme.html')
+
 
 # Banner View
 @api_view(['GET'])
@@ -54,6 +59,7 @@ def get_banners(request):
     serializer = BannerSerializer(banners, many=True)
     return Response(serializer.data)
 
+
 # Zylo_Offer View
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -62,12 +68,14 @@ def get_offers(request):
     serializer = OfferSerializer(offers, many=True)
     return Response(serializer.data)
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_classes(request):
     classes = Zyrax_Class.objects.all()
     serializer = ClassSerializer(classes, many=True)
     return Response(serializer.data)
+
 
 # User Registration API (via OTP)
 @api_view(['POST'])
@@ -102,6 +110,7 @@ def register(request):
     else:
         return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
 
+
 # Verify OTP
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -132,6 +141,7 @@ def verify_otp(request):
             return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # Admin Register User API (no OTP)
 @api_view(['POST'])
@@ -171,6 +181,7 @@ def admin_register(request):
     # Here you can send the password to the admin or the user
     return Response({"message": "User created successfully", "password": password}, status=status.HTTP_201_CREATED)
 
+
 # Login View
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -183,6 +194,7 @@ def login(request):
         token_obtain_view = TokenObtainPairView.as_view()
         return token_obtain_view(request)
     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 # Community Post API Endpoints
 @api_view(['POST'])
@@ -199,12 +211,14 @@ def create_post(request):
     serializer = CommunityPostSerializer(post)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_posts(request):
     posts = CommunityPost.objects.all().prefetch_related('images')
     serializer = CommunityPostSerializer(posts, many=True)
     return Response(serializer.data)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -215,6 +229,7 @@ def create_comment(request, post_id):
     serializer = CommentSerializer(comment)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_comments(request, post_id):
@@ -222,6 +237,7 @@ def get_comments(request, post_id):
     comments = post.comments.all()
     serializer = CommentSerializer(comments, many=True)
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -231,7 +247,6 @@ def get_tutor_profile(request):
     return Response(serializer.data)
 
 
-
 # Service_Post
 @api_view(['Get'])
 @permission_classes([AllowAny])
@@ -239,9 +254,12 @@ def service_post(request):
     service_post = Service_Post.objects.all()
     serializer = ServicePostSerializer(service_post, many=True)
     return Response(serializer.data)
+
+
 # Token Views
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (AllowAny,)
+
 
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = (AllowAny,)
