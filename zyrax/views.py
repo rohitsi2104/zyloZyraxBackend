@@ -21,27 +21,51 @@ import json
 from django.shortcuts import render
 from django.utils import timezone
 from django.conf import settings
+from twilio.rest import Client
+import os
+
 
 # Define the Msg91 authentication and template IDs
 YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
 AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 
+ACCOUNT_SID = os.getenv('ACCOUNT_SID')
+VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
+AUTH_TOKEN = os.getenv('AUTH_TOKEN')
+
+
+client = Client(ACCOUNT_SID, AUTH_TOKEN)
+
 
 # Function to send OTP via Msg91
+# def send_otp(phone_number, otp):
+#     conn = http.client.HTTPSConnection("control.msg91.com")
+#     payload = json.dumps({
+#         "otp": otp,
+#         "mobile": phone_number,
+#         "template_id": YOUR_TEMPLATE_ID,
+#         "authkey": AUTH_KEY,
+#         "otp_expiry": 15
+#     })
+#     url = f"/api/v5/otp?template_id=YOUR_TEMPLATE_ID&mobile={phone_number}&authkey={AUTH_KEY}&otp_expiry=15"
+#     conn.request("POST", url, payload, headers={"Content-Type": "application/json"})
+#     res = conn.getresponse()
+#     data = res.read()
+#     return json.loads(data.decode("utf-8"))
+
 def send_otp(phone_number, otp):
-    conn = http.client.HTTPSConnection("control.msg91.com")
-    payload = json.dumps({
-        "otp": otp,
-        "mobile": phone_number,
-        "template_id": YOUR_TEMPLATE_ID,
-        "authkey": AUTH_KEY,
-        "otp_expiry": 15
-    })
-    url = f"/api/v5/otp?template_id=YOUR_TEMPLATE_ID&mobile={phone_number}&authkey={AUTH_KEY}&otp_expiry=15"
-    conn.request("POST", url, payload, headers={"Content-Type": "application/json"})
-    res = conn.getresponse()
-    data = res.read()
-    return json.loads(data.decode("utf-8"))
+    try:
+        # Send OTP using Twilio Verify API
+        verification = client.verify \
+            .v2 \
+            .services(VERIFY_SERVICE_SID) \
+            .verifications \
+            .create(to=phone_number, channel='sms', custom_code=otp)
+
+        # Return the verification SID as confirmation
+        return {"status": "success", "verification_sid": verification.sid, "message": "OTP sent successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 # Function to generate a random password
@@ -240,6 +264,7 @@ def login(request):
         return token_obtain_view(request)
     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
+
 # @api_view(['POST'])
 # @permission_classes([AllowAny])
 # def login(request):
@@ -424,4 +449,3 @@ def create_or_update_user_additional_info(request, user_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
