@@ -17,6 +17,7 @@ class ZyraxTestimonial(models.Model):
     title = models.CharField(max_length=255)
     image = models.ImageField(upload_to='testimonials/')
     description = models.TextField()
+    tag = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.title
