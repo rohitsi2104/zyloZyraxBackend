@@ -13,6 +13,30 @@ class Banner(models.Model):
     def __str__(self):
         return self.title
 
+class ZyraxTestimonial(models.Model):
+    title = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='testimonials/')
+    description = models.TextField()
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Testimonials"
+        verbose_name_plural = "Testimonials"
+
+
+class CallbackRequest(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    message = models.TextField()
+    preferred_callback_time = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Callback Request from {self.name}"
+
 
 class Offer(models.Model):
     title = models.CharField(max_length=255)
