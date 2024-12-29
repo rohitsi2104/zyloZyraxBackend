@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors, Service_Post, \
-    Attendance, UserAdditionalInfo
+    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest
 from django.contrib.auth.models import User
 
 
@@ -10,6 +10,16 @@ class BannerSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'image', 'description']
 
 
+class ZyraxTestionialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ZyraxTestimonial
+        fields = ['id', 'title', 'image', 'description']
+
+
+class CallbackRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CallbackRequest
+        fields = ['id', 'name', 'email', 'phone', 'message', 'preferred_callback_time', 'created_at']
 class OfferSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offer

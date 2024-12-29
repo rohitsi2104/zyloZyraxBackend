@@ -6,10 +6,10 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.views import APIView
 import logging
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
-    Attendance, UserAdditionalInfo
+    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
-    FullUserProfileSerializer, UserAdditionalInfoSerializer
+    FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer
 
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -32,6 +32,7 @@ AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
+
 
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
@@ -85,6 +86,34 @@ def homepage_view(request):
 def get_banners(request):
     banners = Banner.objects.all()
     serializer = BannerSerializer(banners, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def callback_request(request):
+    # Handle GET request
+    if request.method == 'GET':
+        # Return all callback requests (or modify to filter as needed)
+        callback_requests = CallbackRequest.objects.all()
+        serializer = CallbackRequestSerializer(callback_requests, many=True)
+        return Response(serializer.data)
+
+    # Handle POST request
+    elif request.method == 'POST':
+        # Create a new callback request
+        serializer = CallbackRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+# Testimonial
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_testimonials(request):
+    testimonial = ZyraxTestimonial.objects.all()
+    serializer = ZyraxTestionialSerializer(testimonial, many=True)
     return Response(serializer.data)
 
 
