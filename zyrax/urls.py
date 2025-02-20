@@ -18,7 +18,8 @@ from .views import (
     UserProfileDetailsView,
     create_or_update_user_additional_info,
     get_testimonials,
-    callback_request
+    callback_request,
+    create_staff_user
 )
 
 urlpatterns = [
@@ -43,4 +44,6 @@ urlpatterns = [
     path('user-profile/<int:user_id>/additional-info/', create_or_update_user_additional_info, name='user-profile-additional-info'),
     path('testimonials/', get_testimonials, name='get_testimonials'),
     path('callback/', callback_request, name='create-callback-request'),
+    path("create-staff/", create_staff_user, name="create_staff_user"),
+
 ]
