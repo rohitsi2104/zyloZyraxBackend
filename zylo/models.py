@@ -18,6 +18,33 @@ class Zylo_Banner(models.Model):
         verbose_name_plural = "Banners"  # This will display 'Banners' in plural form (optional)
 
 
+class Zylo_Testimonial(models.Model):
+    title = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='testimonials/')
+    description = models.TextField()
+    tag = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Testimonials"
+        verbose_name_plural = "Testimonials"
+
+
+class Zylo_CallbackRequest(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    message = models.TextField()
+    preferred_callback_time = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Callback Request from {self.name}"
+
+
+
 class Zylo_Offer(models.Model):
     title = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

@@ -2,7 +2,8 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
-from .models import Zylo_Banner, Zylo_Offer, Zylo_Class,Tutors, Service_Post
+from .models import Zylo_Banner, Zylo_Offer, Zylo_Class,Tutors, Service_Post, Zylo_Testimonial, Zylo_CallbackRequest
+
 
 
 # Custom user creation form
@@ -41,6 +42,16 @@ admin.site.register(User, CustomUserAdmin)
 @admin.register(Zylo_Banner)
 class BannerAdmin(admin.ModelAdmin):
     list_display = ('title', 'description')  # Assuming 'title' and 'description' exist in the Banner model
+
+@admin.register(Zylo_CallbackRequest)
+class Zylo_CallbackRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'email', 'phone', 'preferred_callback_time', 'created_at')
+    search_fields = ('name', 'email', 'phone')
+    list_filter = ('preferred_callback_time', 'created_at')
+
+@admin.register(Zylo_Testimonial)
+class Zylo_TestimonialAsmin(admin.ModelAdmin):
+    list_display = ('title', 'description')
 
 
 @admin.register(Zylo_Offer)

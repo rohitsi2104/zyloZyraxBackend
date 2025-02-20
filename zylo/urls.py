@@ -16,7 +16,9 @@ from .views import (
     service_post,
     AttendanceViewSet,
     UserProfileDetailsView,
-    create_or_update_user_additional_info
+    create_or_update_user_additional_info,
+    get_testimonials,
+    callback_request
 )
 
 
@@ -40,4 +42,6 @@ urlpatterns = [
          name='monthly_attendance'),
     path('profile/details/', UserProfileDetailsView.as_view(), name='profile_details'),
     path('user-profile/<int:user_id>/additional-info/', create_or_update_user_additional_info, name='user-profile-additional-info'),
+    path('testimonials/', get_testimonials, name='get_testimonials'),
+    path('callback/', callback_request, name='create-callback-request'),
 ]
