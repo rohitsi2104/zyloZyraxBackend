@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta
+
+from django.contrib.auth.decorators import user_passes_test, login_required
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
 from rest_framework.views import APIView
-import logging
+from django.contrib import messages
+from django import forms
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
     Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
@@ -18,7 +21,7 @@ import random
 import string
 import http.client
 import json
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.conf import settings
 from twilio.rest import Client
@@ -35,7 +38,45 @@ AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 
 
+
+
+
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
+
+def is_superuser(user):
+    return user.is_authenticated and user.is_superuser
+
+# Updated Staff User Form
+class StaffUserForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)  # Hide password input
+
+    class Meta:
+        model = User
+        fields = ["username", "email", "first_name", "last_name", "password"]
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])  # Hash password
+        user.is_staff = True  # Set staff status
+        if commit:
+            user.save()
+        return user
+
+# View to create staff user (Only for superusers)
+@login_required
+@user_passes_test(is_superuser)
+def create_staff_user(request):
+    if request.method == "POST":
+        form = StaffUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Staff user created successfully!")
+            return redirect("admin:index")  # Redirect to admin panel
+    else:
+        form = StaffUserForm()
+
+    return render(request, "create_staff_user.html", {"form": form})
+
 
 
 # Function to send OTP via Msg91

@@ -93,7 +93,7 @@ def register(request):
         otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
         cache.set(f'otp_{phone_number}', otp, timeout=300)
         send_otp(phone_number, otp)
-
+        print(otp)
         cache.set(f'registration_data_{phone_number}', {
             'first_name': first_name,
             'last_name': last_name,
