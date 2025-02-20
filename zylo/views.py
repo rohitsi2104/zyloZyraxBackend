@@ -6,10 +6,10 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.views import APIView
 
 from .models import Zylo_Banner, Zylo_Offer, CommunityPost, PostImage, Comments, UserProfile, Zylo_Class, Tutors, \
-    Service_Post, Attendance, UserAdditionalInfo
+    Service_Post, Attendance, UserAdditionalInfo, Zylo_Testimonial, Zylo_CallbackRequest
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
-    FullUserProfileSerializer, UserAdditionalInfoSerializer
+    FullUserProfileSerializer, UserAdditionalInfoSerializer, Zylo_TestionialSerializer, Zylo_CallbackRequestSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -55,6 +55,34 @@ def get_banners(request):
     banners = Zylo_Banner.objects.all()
     serializer = BannerSerializer(banners, many=True)
     return Response(serializer.data)
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def callback_request(request):
+    # Handle GET request
+    if request.method == 'GET':
+        # Return all callback requests (or modify to filter as needed)
+        callback_requests = Zylo_CallbackRequest.objects.all()
+        serializer = Zylo_CallbackRequestSerializer(callback_requests, many=True)
+        return Response(serializer.data)
+
+    # Handle POST request
+    elif request.method == 'POST':
+        # Create a new callback request
+        serializer = Zylo_CallbackRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+# Testimonial
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_testimonials(request):
+    testimonial = Zylo_Testimonial.objects.all()
+    serializer = Zylo_TestionialSerializer(testimonial, many=True)
+    return Response(serializer.data)
+
 
 
 @api_view(['GET'])
