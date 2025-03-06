@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.contrib.auth.decorators import user_passes_test, login_required
+from django.utils.dateparse import parse_datetime
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -12,7 +13,7 @@ from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfil
     Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
-    FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer
+    FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer, TransactionSerializer
 
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -35,6 +36,8 @@ AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
+
+
 
 
 
@@ -519,3 +522,42 @@ def create_or_update_user_additional_info(request, user_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def easebuzz_webhook(request):
+    data = request.data
+
+    try:
+        # Parse addedon timestamp safely
+        addedon_value = parse_datetime(data.get("addedon")) or timezone.now()
+
+        transaction_data = {
+            "txnid": data.get("txnid"),
+            "amount": data.get("amount"),
+            "status": data.get("status"),
+            "payment_mode": data.get("mode"),
+            "email": data.get("email"),
+            "phone": data.get("phone"),
+            "upi_va": data.get("upi_va"),
+            "addedon": addedon_value,  # ✅ Fixed datetime parsing
+            "bank_ref_num": data.get("bank_ref_num"),
+            "easepayid": data.get("easepayid"),
+            "firstname": data.get("firstname"),
+            "productinfo": data.get("productinfo"),
+            "service_tax": data.get("service_tax"),
+            "service_charge": data.get("service_charge"),
+            "net_amount_debit": data.get("net_amount_debit"),
+            "settlement_amount": data.get("settlement_amount"),
+            "cash_back_percentage": data.get("cash_back_percentage"),
+        }
+
+        serializer = TransactionSerializer(data=transaction_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Transaction stored successfully"}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
