@@ -163,3 +163,30 @@ class UserAdditionalInfo(models.Model):
 
     def __str__(self):
         return f"{self.user_profile.user.username}'s Additional Info"
+
+
+
+# Payment webhook
+class PatymentRecord(models.Model):
+    txnid = models.CharField(max_length=100, unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=50)
+    payment_mode = models.CharField(max_length=50, null=True, blank=True)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    upi_va = models.CharField(max_length=100, null=True, blank=True)
+    addedon = models.DateTimeField(default=timezone.now)  # Set default to now
+    bank_ref_num = models.CharField(max_length=100, null=True, blank=True)
+    easepayid = models.CharField(max_length=100, unique=True)
+    firstname = models.CharField(max_length=255, null=True, blank=True)
+    productinfo = models.CharField(max_length=255, null=True, blank=True)
+    service_tax = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    net_amount_debit = models.DecimalField(max_digits=10, decimal_places=2)
+    settlement_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    cash_back_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+
+    def __str__(self):
+        return f"{self.txnid} - {self.status}"
+
+

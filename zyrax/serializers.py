@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors, Service_Post, \
-    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest
+    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, PatymentRecord
 from django.contrib.auth.models import User
 
 
@@ -115,3 +115,8 @@ class FullUserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['user', 'first_name', 'last_name', 'phone_number', 'date_of_birth', 'additional_info']
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatymentRecord
+        fields = '__all__'

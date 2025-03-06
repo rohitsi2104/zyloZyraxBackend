@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, ZyraxTestimonial, CallbackRequest
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, ZyraxTestimonial, CallbackRequest, PatymentRecord
 
 
 # Custom user creation form
@@ -68,4 +68,10 @@ class ClassAdmin(admin.ModelAdmin):
 class Service_PostAdmin(admin.ModelAdmin):
     list_display = ('title', 'description')
 
+
+@admin.register(PatymentRecord)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ('txnid', 'amount', 'status', 'payment_mode', 'email', 'phone', 'addedon')
+    search_fields = ('txnid', 'email', 'phone')
+    list_filter = ('status', 'payment_mode', 'addedon')
 

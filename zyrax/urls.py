@@ -19,7 +19,9 @@ from .views import (
     create_or_update_user_additional_info,
     get_testimonials,
     callback_request,
-    create_staff_user
+    create_staff_user,
+    easebuzz_webhook,
+
 )
 
 urlpatterns = [
@@ -45,5 +47,6 @@ urlpatterns = [
     path('testimonials/', get_testimonials, name='get_testimonials'),
     path('callback/', callback_request, name='create-callback-request'),
     path("create-staff/", create_staff_user, name="create_staff_user"),
+    path('webhook/', easebuzz_webhook, name='easebuzz_webhook'),
 
 ]
