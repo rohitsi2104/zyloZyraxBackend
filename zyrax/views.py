@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.contrib.auth.decorators import user_passes_test, login_required
+from django.template.defaulttags import now
 from django.utils.dateparse import parse_datetime
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -10,7 +11,7 @@ from rest_framework.views import APIView
 from django.contrib import messages
 from django import forms
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
-    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest
+    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, UserMembership,PatymentRecord
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
     FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer, TransactionSerializer
@@ -22,11 +23,13 @@ import random
 import string
 import http.client
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.conf import settings
 from twilio.rest import Client
 import os
+from django.utils.timezone import now
+
 
 
 # Define the Msg91 authentication and template IDs
@@ -36,9 +39,6 @@ AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
-
-
-
 
 
 
@@ -338,30 +338,6 @@ def login(request):
     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def login(request):
-#     phone_number = request.data.get('phone_number')
-#     password = request.data.get('password')
-#
-#     # Check if the user exists and verify the password
-#     user = User.objects.filter(username=phone_number).first()
-#     if user and user.check_password(password):
-#         # Prepare data for token generation
-#         data = {
-#             'username': phone_number,
-#             'password': password
-#         }
-#
-#         # Create the token view and generate the token manually
-#         token_obtain_view = TokenObtainPairView.as_view()
-#         response = token_obtain_view(request._request)  # Pass original request
-#
-#         return response
-#
-#     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-
-
 # Community Post API Endpoints
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -561,3 +537,52 @@ def easebuzz_webhook(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def verify_payment(request):
+    phone_number = request.data.get("phone_number")
+    txnid = request.data.get("txnid")
+    amount = request.data.get("amount")
+
+    if not phone_number or not txnid or not amount:
+        return Response({"error": "phone_number, txnid, and amount are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user_profile = get_object_or_404(UserProfile, phone_number=phone_number)
+        transaction = get_object_or_404(PatymentRecord, txnid=txnid, amount=amount, phone=phone_number, status="success")
+
+        return Response(
+            {"message": "Payment verified successfully", "transaction": TransactionSerializer(transaction).data},
+            status=status.HTTP_200_OK,
+        )
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_subscription(request):
+    user_id = request.data.get("user_id")
+    offer_id = request.data.get("offer_id")
+    transaction_id = request.data.get("transaction_id")
+
+    if not user_id or not offer_id or not transaction_id:
+        return Response({"error": "user_id, offer_id, and transaction_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = get_object_or_404(User, id=user_id)
+    offer = get_object_or_404(Offer, id=offer_id)
+
+    subscription = UserMembership.objects.create(
+        user=user,
+        offer=offer,
+        transaction_id=transaction_id,
+        amount_paid=offer.amount,
+        start_date = now(),
+        end_date=now() + timedelta(days=offer.duration),
+        is_active=True
+    )
+
+    return Response({"message": "Subscription created successfully", "subscription_id": subscription.id}, status=status.HTTP_201_CREATED)
+
+
