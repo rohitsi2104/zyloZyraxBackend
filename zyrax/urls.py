@@ -21,6 +21,8 @@ from .views import (
     callback_request,
     create_staff_user,
     easebuzz_webhook,
+    create_subscription,
+    verify_payment
 
 )
 
@@ -48,5 +50,7 @@ urlpatterns = [
     path('callback/', callback_request, name='create-callback-request'),
     path("create-staff/", create_staff_user, name="create_staff_user"),
     path('webhook/', easebuzz_webhook, name='easebuzz_webhook'),
+    path("verify-payment/", verify_payment, name="verify_payment"),
+    path('create-subscription/', create_subscription, name='create-subscription'),
 
 ]

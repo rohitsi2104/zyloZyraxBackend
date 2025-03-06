@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, ZyraxTestimonial, CallbackRequest, PatymentRecord
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership
 
 
 # Custom user creation form
@@ -74,4 +74,17 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = ('txnid', 'amount', 'status', 'payment_mode', 'email', 'phone', 'addedon')
     search_fields = ('txnid', 'email', 'phone')
     list_filter = ('status', 'payment_mode', 'addedon')
+
+
+
+
+class UserMembershipAdmin(admin.ModelAdmin):
+    list_display = ("user", "offer", "transaction_id", "amount_paid", "start_date", "end_date", "is_active")
+    search_fields = ("user__email", "transaction_id", "offer__title")
+    list_filter = ("is_active", "start_date", "end_date")
+
+admin.site.register(UserMembership, UserMembershipAdmin)
+
+
+
 

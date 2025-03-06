@@ -1,7 +1,9 @@
 # content/models.py
+from datetime import timedelta
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.template.defaulttags import now
 from django.utils import timezone
 
 
@@ -189,4 +191,23 @@ class PatymentRecord(models.Model):
     def __str__(self):
         return f"{self.txnid} - {self.status}"
 
+
+
+
+class UserMembership(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    offer = models.ForeignKey(Offer, on_delete=models.CASCADE)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    start_date = models.DateTimeField(default=now)
+    end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        if not self.end_date:
+            self.end_date = self.start_date + timedelta(days=self.offer.duration)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user} - {self.offer.title}"
 
