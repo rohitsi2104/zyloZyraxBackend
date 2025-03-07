@@ -22,7 +22,8 @@ from .views import (
     create_staff_user,
     easebuzz_webhook,
     create_subscription,
-    verify_and_subscribe
+    verify_and_subscribe,
+    subscription_form
 
 )
 
@@ -52,5 +53,6 @@ urlpatterns = [
     path('webhook/', easebuzz_webhook, name='easebuzz_webhook'),
     path('create-subscription/', create_subscription, name='create-subscription'),
     path('verify-subscribe/', verify_and_subscribe, name='verify-subscribe'),
+    path("create-subscriptions-manually/", subscription_form, name="subscription_form"),
 
 ]

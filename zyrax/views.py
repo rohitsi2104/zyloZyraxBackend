@@ -639,3 +639,109 @@ def normalize_phone_number(phone: str) -> str:
         return "+91" + phone
     else:
         raise ValueError("Invalid phone number format")
+
+
+# def subscription_form(request):
+#     if request.method == "POST":
+#         user_id = request.POST.get("user_id")
+#         offer_id = request.POST.get("offer_id")
+#         transaction_id = request.POST.get("transaction_id")
+#
+#         if not user_id or not offer_id or not transaction_id:
+#             return render(request, "subscription_form.html", {"error": "All fields are required"})
+#
+#         user = get_object_or_404(User, id=user_id)
+#         offer = get_object_or_404(Offer, id=offer_id)
+#
+#         subscription = UserMembership.objects.create(
+#             user=user,
+#             offer=offer,
+#             transaction_id=transaction_id,
+#             amount_paid=offer.amount,
+#             start_date=now(),
+#             end_date=now() + timedelta(days=offer.duration),
+#             is_active=True
+#         )
+#
+#         return redirect("subscription_form")
+#
+#     users = User.objects.all()
+#     offers = Offer.objects.filter(is_active=True)
+#     subscriptions = UserMembership.objects.all()
+#
+#     return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.models import User
+from django.utils.timezone import now
+from datetime import timedelta
+from .models import UserProfile, Offer, UserMembership
+
+
+def subscription_form(request):
+    if request.method == "POST":
+        form_type = request.POST.get("form_type")
+
+        if form_type == "create_user":
+            # Extract user details from the form
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            phone_number = request.POST.get("phone_number")
+            date_of_birth = request.POST.get("date_of_birth")
+
+            # Phone number formatting
+            phone_number = phone_number.lstrip("0")  # Remove leading 0
+            if len(phone_number) == 10:
+                phone_number = "+91" + phone_number  # Add +91 prefix
+
+            # Check if user exists
+            if User.objects.filter(username=username).exists():
+                return render(request, "subscription_form.html", {"error": "Username already taken."})
+
+            if UserProfile.objects.filter(phone_number=phone_number).exists():
+                return render(request, "subscription_form.html", {"error": "Phone number already registered."})
+
+            # Create User and UserProfile
+            user = User.objects.create_user(username=username, password=password)
+            UserProfile.objects.create(
+                user=user,
+                first_name=first_name,
+                last_name=last_name,
+                phone_number=phone_number,
+                date_of_birth=date_of_birth if date_of_birth else None
+            )
+
+            return redirect("subscription_form")
+
+        elif form_type == "create_subscription":
+            user_id = request.POST.get("user_id")
+            offer_id = request.POST.get("offer_id")
+            transaction_id = request.POST.get("transaction_id")
+
+            if not user_id or not offer_id or not transaction_id:
+                return render(request, "subscription_form.html", {"error": "All fields are required"})
+
+            user = get_object_or_404(User, id=user_id)
+            offer = get_object_or_404(Offer, id=offer_id)
+
+            subscription = UserMembership.objects.create(
+                user=user,
+                offer=offer,
+                transaction_id=transaction_id,
+                amount_paid=offer.amount,
+                start_date=now(),
+                end_date=now() + timedelta(days=offer.duration),
+                is_active=True
+            )
+
+            return redirect("subscription_form")
+
+    # Fetch data for display
+    users = User.objects.all()
+    offers = Offer.objects.filter(is_active=True)
+    subscriptions = UserMembership.objects.all()
+
+    return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
