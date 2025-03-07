@@ -538,7 +538,7 @@ def create_or_update_user_additional_info(request, user_id):
 @api_view(['POST'])
 def easebuzz_webhook(request):
     try:
-        logger.info("Received webhook request: %s", request.data)  # Log incoming data
+        logger.info("Received webhook request: %s", request.data)
 
         # Ensure data is a dictionary
         data = request.data if isinstance(request.data, dict) else request.POST
@@ -547,11 +547,16 @@ def easebuzz_webhook(request):
         for key, value in data.items():
             logger.info(f"Key: {key}, Value: {value}")
 
-        addedon_value = parse_datetime(data.get("addedon")) or timezone.now()
+        # Safely handle 'addedon' field
+        addedon_value = data.get("addedon")
+        if isinstance(addedon_value, str):
+            addedon_value = parse_datetime(addedon_value) or timezone.now()
+        else:
+            addedon_value = timezone.now()
 
         transaction_data = {
             "txnid": data.get("txnid"),
-            "amount": data.get("amount"),
+            "amount": data.get("amount") or 0.0,  # Ensure amount is not None
             "status": data.get("status"),
             "payment_mode": data.get("mode"),
             "email": data.get("email"),
@@ -562,16 +567,14 @@ def easebuzz_webhook(request):
             "easepayid": data.get("easepayid"),
             "firstname": data.get("firstname"),
             "productinfo": data.get("productinfo"),
-            "service_tax": data.get("service_tax"),
-            "service_charge": data.get("service_charge"),
-            "net_amount_debit": data.get("net_amount_debit"),
-            "settlement_amount": data.get("settlement_amount"),
-            "cash_back_percentage": data.get("cash_back_percentage"),
+            "service_tax": data.get("service_tax") or 0.0,
+            "service_charge": data.get("service_charge") or 0.0,
+            "net_amount_debit": data.get("net_amount_debit") or 0.0,
+            "settlement_amount": data.get("settlement_amount") or 0.0,
+            "cash_back_percentage": data.get("cash_back_percentage") or 0.0,
         }
 
         logger.info("Transaction Data: %s", transaction_data)
-
-        from .serializers import TransactionSerializer  # Ensure serializer import is correct
 
         serializer = TransactionSerializer(data=transaction_data)
         if serializer.is_valid():
@@ -584,6 +587,7 @@ def easebuzz_webhook(request):
     except Exception as e:
         logger.error("Webhook processing error: %s", str(e), exc_info=True)
         return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 
