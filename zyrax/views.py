@@ -11,10 +11,11 @@ from rest_framework.views import APIView
 from django.contrib import messages
 from django import forms
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
-    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, UserMembership,PatymentRecord
+    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, UserMembership, PatymentRecord
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
-    FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer, TransactionSerializer
+    FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer, \
+    TransactionSerializer
 
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -30,7 +31,6 @@ from twilio.rest import Client
 import os
 from django.utils.timezone import now
 
-
 logger = logging.getLogger(__name__)
 # Define the Msg91 authentication and template IDs
 YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
@@ -40,12 +40,12 @@ ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
-
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 
 def is_superuser(user):
     return user.is_authenticated and user.is_superuser
+
 
 # Updated Staff User Form
 class StaffUserForm(forms.ModelForm):
@@ -63,6 +63,7 @@ class StaffUserForm(forms.ModelForm):
             user.save()
         return user
 
+
 # View to create staff user (Only for superusers)
 @login_required
 @user_passes_test(is_superuser)
@@ -77,7 +78,6 @@ def create_staff_user(request):
         form = StaffUserForm()
 
     return render(request, "create_staff_user.html", {"form": form})
-
 
 
 # Function to send OTP via Msg91
@@ -149,6 +149,7 @@ def callback_request(request):
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+
 
 # Testimonial
 @api_view(['GET'])
@@ -518,7 +519,7 @@ def easebuzz_webhook(request):
             "status": event_data.get("status"),
             "payment_mode": event_data.get("payment_mode"),  # Ensure this key exists
             "email": event_data.get("email"),
-            "phone": normalize_phone_number(event_data.get("+91"+"phone")),
+            "phone": normalize_phone_number(event_data.get("+91" + "phone")),
             "upi_va": event_data.get("upi_va"),
             "addedon": addedon_value,
             "bank_ref_num": event_data.get("bank_ref_num"),
@@ -549,7 +550,6 @@ def easebuzz_webhook(request):
         return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 @api_view(["POST"])
 def create_subscription(request):
     user_id = request.data.get("user_id")
@@ -557,7 +557,8 @@ def create_subscription(request):
     transaction_id = request.data.get("transaction_id")
 
     if not user_id or not offer_id or not transaction_id:
-        return Response({"error": "user_id, offer_id, and transaction_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "user_id, offer_id, and transaction_id are required"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     user = get_object_or_404(User, id=user_id)
     offer = get_object_or_404(Offer, id=offer_id)
@@ -567,12 +568,13 @@ def create_subscription(request):
         offer=offer,
         transaction_id=transaction_id,
         amount_paid=offer.amount,
-        start_date = now(),
+        start_date=now(),
         end_date=now() + timedelta(days=offer.duration),
         is_active=True
     )
 
-    return Response({"message": "Subscription created successfully", "subscription_id": subscription.id}, status=status.HTTP_201_CREATED)
+    return Response({"message": "Subscription created successfully", "subscription_id": subscription.id},
+                    status=status.HTTP_201_CREATED)
 
 
 @api_view(["POST"])
@@ -582,7 +584,8 @@ def verify_and_subscribe(request):
     offer_id = request.data.get("offer_id")
 
     if not phone_number or not user_id or not offer_id:
-        return Response({"error": "phone_number, user_id, and offer_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "phone_number, user_id, and offer_id are required"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     # Verify payment
     transaction = get_object_or_404(PatymentRecord, phone=phone_number, status="success")
