@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+import logging
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.template.defaulttags import now
 from django.utils.dateparse import parse_datetime
@@ -31,7 +31,7 @@ import os
 from django.utils.timezone import now
 
 
-
+logger = logging.getLogger(__name__)
 # Define the Msg91 authentication and template IDs
 YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
 AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
@@ -500,12 +500,53 @@ def create_or_update_user_additional_info(request, user_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# @api_view(['POST'])
+# def easebuzz_webhook(request):
+#     data = request.data
+#
+#     try:
+#         # Parse addedon timestamp safely
+#         addedon_value = parse_datetime(data.get("addedon")) or timezone.now()
+#
+#         transaction_data = {
+#             "txnid": data.get("txnid"),
+#             "amount": data.get("amount"),
+#             "status": data.get("status"),
+#             "payment_mode": data.get("mode"),
+#             "email": data.get("email"),
+#             "phone": data.get("phone"),
+#             "upi_va": data.get("upi_va"),
+#             "addedon": addedon_value,  # ✅ Fixed datetime parsing
+#             "bank_ref_num": data.get("bank_ref_num"),
+#             "easepayid": data.get("easepayid"),
+#             "firstname": data.get("firstname"),
+#             "productinfo": data.get("productinfo"),
+#             "service_tax": data.get("service_tax"),
+#             "service_charge": data.get("service_charge"),
+#             "net_amount_debit": data.get("net_amount_debit"),
+#             "settlement_amount": data.get("settlement_amount"),
+#             "cash_back_percentage": data.get("cash_back_percentage"),
+#         }
+#
+#         serializer = TransactionSerializer(data=transaction_data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message": "Transaction stored successfully"}, status=status.HTTP_201_CREATED)
+#
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
 def easebuzz_webhook(request):
-    data = request.data
-
     try:
-        # Parse addedon timestamp safely
+        logger.info("Received webhook request: %s", request.data)  # Log incoming data
+
+        # Ensure data is a dictionary
+        data = request.data if isinstance(request.data, dict) else request.POST
+
+        # Debugging: Log each key
+        for key, value in data.items():
+            logger.info(f"Key: {key}, Value: {value}")
+
         addedon_value = parse_datetime(data.get("addedon")) or timezone.now()
 
         transaction_data = {
@@ -516,7 +557,7 @@ def easebuzz_webhook(request):
             "email": data.get("email"),
             "phone": data.get("phone"),
             "upi_va": data.get("upi_va"),
-            "addedon": addedon_value,  # ✅ Fixed datetime parsing
+            "addedon": addedon_value,
             "bank_ref_num": data.get("bank_ref_num"),
             "easepayid": data.get("easepayid"),
             "firstname": data.get("firstname"),
@@ -528,15 +569,23 @@ def easebuzz_webhook(request):
             "cash_back_percentage": data.get("cash_back_percentage"),
         }
 
+        logger.info("Transaction Data: %s", transaction_data)
+
+        from .serializers import TransactionSerializer  # Ensure serializer import is correct
+
         serializer = TransactionSerializer(data=transaction_data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Transaction stored successfully"}, status=status.HTTP_201_CREATED)
 
+        logger.error("Serializer validation failed: %s", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error("Webhook processing error: %s", str(e), exc_info=True)
+        return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 
 @api_view(["POST"])
