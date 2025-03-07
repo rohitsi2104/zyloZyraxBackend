@@ -535,46 +535,98 @@ def create_or_update_user_additional_info(request, user_id):
 #
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# @api_view(['POST'])
+# def easebuzz_webhook(request):
+#     try:
+#         logger.info("Received webhook request: %s", request.data)
+#
+#         # Ensure data is a dictionary
+#         data = request.data if isinstance(request.data, dict) else request.POST
+#
+#         # Debugging: Log each key
+#         for key, value in data.items():
+#             logger.info(f"Key: {key}, Value: {value}")
+#
+#         # Safely handle 'addedon' field
+#         addedon_value = data.get("addedon")
+#         if isinstance(addedon_value, str):
+#             addedon_value = parse_datetime(addedon_value) or timezone.now()
+#         else:
+#             addedon_value = timezone.now()
+#
+#         transaction_data = {
+#             "txnid": data.get("txnid"),
+#             "amount": data.get("amount") or 0.0,  # Ensure amount is not None
+#             "status": data.get("status"),
+#             "payment_mode": data.get("mode"),
+#             "email": data.get("email"),
+#             "phone": data.get("phone"),
+#             "upi_va": data.get("upi_va"),
+#             "addedon": addedon_value,
+#             "bank_ref_num": data.get("bank_ref_num"),
+#             "easepayid": data.get("easepayid"),
+#             "firstname": data.get("firstname"),
+#             "productinfo": data.get("productinfo"),
+#             "service_tax": data.get("service_tax") or 0.0,
+#             "service_charge": data.get("service_charge") or 0.0,
+#             "net_amount_debit": data.get("net_amount_debit") or 0.0,
+#             "settlement_amount": data.get("settlement_amount") or 0.0,
+#             "cash_back_percentage": data.get("cash_back_percentage") or 0.0,
+#         }
+#
+#         logger.info("Transaction Data: %s", transaction_data)
+#
+#         serializer = TransactionSerializer(data=transaction_data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message": "Transaction stored successfully"}, status=status.HTTP_201_CREATED)
+#
+#         logger.error("Serializer validation failed: %s", serializer.errors)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#     except Exception as e:
+#         logger.error("Webhook processing error: %s", str(e), exc_info=True)
+#         return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 @api_view(['POST'])
 def easebuzz_webhook(request):
     try:
-        logger.info("Received webhook request: %s", request.data)
+        logger.info("Received webhook request: %s", request.data)  # Log incoming data
 
-        # Ensure data is a dictionary
-        data = request.data if isinstance(request.data, dict) else request.POST
+        # Ensure data extraction from request
+        raw_data = request.data if isinstance(request.data, dict) else request.POST
+        event_data = raw_data.get("data", {})  # Extract actual transaction data
 
-        # Debugging: Log each key
-        for key, value in data.items():
-            logger.info(f"Key: {key}, Value: {value}")
+        # Debugging: Log extracted event data
+        logger.info("Extracted event data: %s", event_data)
 
-        # Safely handle 'addedon' field
-        addedon_value = data.get("addedon")
-        if isinstance(addedon_value, str):
-            addedon_value = parse_datetime(addedon_value) or timezone.now()
-        else:
-            addedon_value = timezone.now()
+        addedon_value = parse_datetime(event_data.get("transaction_date")) or timezone.now()
 
         transaction_data = {
-            "txnid": data.get("txnid"),
-            "amount": data.get("amount") or 0.0,  # Ensure amount is not None
-            "status": data.get("status"),
-            "payment_mode": data.get("mode"),
-            "email": data.get("email"),
-            "phone": data.get("phone"),
-            "upi_va": data.get("upi_va"),
+            "txnid": event_data.get("txn_id"),  # Correct key mapping
+            "amount": event_data.get("amount", 0.0),
+            "status": event_data.get("status"),
+            "payment_mode": event_data.get("payment_mode"),  # Ensure this key exists
+            "email": event_data.get("email"),
+            "phone": event_data.get("phone"),
+            "upi_va": event_data.get("upi_va"),
             "addedon": addedon_value,
-            "bank_ref_num": data.get("bank_ref_num"),
-            "easepayid": data.get("easepayid"),
-            "firstname": data.get("firstname"),
-            "productinfo": data.get("productinfo"),
-            "service_tax": data.get("service_tax") or 0.0,
-            "service_charge": data.get("service_charge") or 0.0,
-            "net_amount_debit": data.get("net_amount_debit") or 0.0,
-            "settlement_amount": data.get("settlement_amount") or 0.0,
-            "cash_back_percentage": data.get("cash_back_percentage") or 0.0,
+            "bank_ref_num": event_data.get("bank_ref_num"),
+            "easepayid": event_data.get("payer_id"),  # Mapped to correct field
+            "firstname": event_data.get("name"),
+            "productinfo": event_data.get("productinfo"),
+            "service_tax": event_data.get("service_tax", 0.0),
+            "service_charge": event_data.get("service_charge", 0.0),
+            "net_amount_debit": event_data.get("net_amount_debit", 0.0),
+            "settlement_amount": event_data.get("settlement_amount", 0.0),
+            "cash_back_percentage": event_data.get("cash_back_percentage", 0.0),
         }
 
-        logger.info("Transaction Data: %s", transaction_data)
+        logger.info("Mapped Transaction Data: %s", transaction_data)
+
+        from .serializers import TransactionSerializer  # Ensure serializer import is correct
 
         serializer = TransactionSerializer(data=transaction_data)
         if serializer.is_valid():
