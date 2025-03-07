@@ -1,0 +1,322 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>User & Subscription Management</title>-->
+<!--    <style>-->
+<!--        body {-->
+<!--            font-family: Arial, sans-serif;-->
+<!--            background-color: black;-->
+<!--            color: white;-->
+<!--            text-align: center;-->
+<!--            padding: 20px;-->
+<!--        }-->
+<!--        form {-->
+<!--            background: #222;-->
+<!--            padding: 20px;-->
+<!--            max-width: 400px;-->
+<!--            margin: auto;-->
+<!--            border-radius: 8px;-->
+<!--            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);-->
+<!--        }-->
+<!--        input, select, button {-->
+<!--            width: 100%;-->
+<!--            padding: 10px;-->
+<!--            margin: 8px 0;-->
+<!--            border: none;-->
+<!--            border-radius: 5px;-->
+<!--            font-size: 16px;-->
+<!--        }-->
+<!--        input, select {-->
+<!--            background: #333;-->
+<!--            color: white;-->
+<!--            outline: none;-->
+<!--        }-->
+<!--        button {-->
+<!--            background-color: #5d16eb;-->
+<!--            color: white;-->
+<!--            cursor: pointer;-->
+<!--            transition: 0.3s;-->
+<!--            font-weight: bold;-->
+<!--        }-->
+<!--        button:hover {-->
+<!--            background-color: #7d3df3;-->
+<!--        }-->
+<!--        h2 {-->
+<!--            color: #5d16eb;-->
+<!--        }-->
+<!--        table {-->
+<!--            width: 80%;-->
+<!--            margin: 20px auto;-->
+<!--            border-collapse: collapse;-->
+<!--            background: #222;-->
+<!--            border-radius: 8px;-->
+<!--            overflow: hidden;-->
+<!--        }-->
+<!--        table, th, td {-->
+<!--            border: 1px solid #5d16eb;-->
+<!--            padding: 8px;-->
+<!--            text-align: center;-->
+<!--            color: white;-->
+<!--        }-->
+<!--        th {-->
+<!--            background: #5d16eb;-->
+<!--            color: white;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--    <h2>Create User</h2>-->
+<!--    <form method="POST">-->
+<!--        {% csrf_token %}-->
+<!--        <input type="hidden" name="form_type" value="create_user">-->
+
+<!--        <label for="username">Username:</label>-->
+<!--        <input type="text" name="username" autocomplete="off" required>-->
+
+<!--        <label for="password">Password:</label>-->
+<!--        <input type="password" name="password" autocomplete="off" required>-->
+
+<!--        <label for="first_name">First Name:</label>-->
+<!--        <input type="text" name="first_name" required>-->
+
+<!--        <label for="last_name">Last Name:</label>-->
+<!--        <input type="text" name="last_name" required>-->
+
+<!--        <label for="phone_number">Phone Number:</label>-->
+<!--        <input type="text" name="phone_number" required>-->
+
+<!--        <label for="dob">Date of Birth:</label>-->
+<!--        <input type="date" name="date_of_birth">-->
+
+<!--        <button type="submit">Create User</button>-->
+<!--    </form>-->
+
+<!--    <h2>Create Subscription</h2>-->
+<!--    <form method="POST">-->
+<!--        {% csrf_token %}-->
+<!--        <input type="hidden" name="form_type" value="create_subscription">-->
+
+<!--        <label for="user">Select User:</label>-->
+<!--        <select name="user_id" required>-->
+<!--            {% for user in users %}-->
+<!--                <option value="{{ user.id }}">{{ user.username }}</option>-->
+<!--            {% endfor %}-->
+<!--        </select>-->
+
+<!--        <label for="offer">Select Offer:</label>-->
+<!--        <select name="offer_id" required>-->
+<!--            {% for offer in offers %}-->
+<!--                <option value="{{ offer.id }}">{{ offer.title }} (₹{{ offer.amount }})</option>-->
+<!--            {% endfor %}-->
+<!--        </select>-->
+
+<!--        <label for="transaction_id">Transaction ID:</label>-->
+<!--        <input type="text" name="transaction_id" required>-->
+
+<!--        <button type="submit">Create Subscription</button>-->
+<!--    </form>-->
+
+<!--    <h2>Existing Subscriptions</h2>-->
+<!--    <table>-->
+<!--        <tr>-->
+<!--            <th>ID</th>-->
+<!--            <th>User</th>-->
+<!--            <th>Offer</th>-->
+<!--            <th>Amount Paid</th>-->
+<!--            <th>Start Date</th>-->
+<!--            <th>End Date</th>-->
+<!--        </tr>-->
+<!--        {% for subscription in subscriptions %}-->
+<!--        <tr>-->
+<!--            <td>{{ subscription.id }}</td>-->
+<!--            <td>{{ subscription.user.username }}</td>-->
+<!--            <td>{{ subscription.offer.title }}</td>-->
+<!--            <td>₹{{ subscription.amount_paid }}</td>-->
+<!--            <td>{{ subscription.start_date }}</td>-->
+<!--            <td>{{ subscription.end_date }}</td>-->
+<!--        </tr>-->
+<!--        {% endfor %}-->
+<!--    </table>-->
+
+<!--</body>-->
+<!--</html>-->
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User & Subscription Management</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.form-container {
+    background: #222;
+    padding: 30px;
+    width: 400px; /* Match input width */
+    margin: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center inputs */
+}
+
+form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center inputs */
+}
+
+input, select, button {
+    width: 100%; /* Ensure all elements take the full width */
+    max-width: 350px; /* Prevent too much stretching */
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+input, select {
+    background: #333;
+    color: white;
+    outline: none;
+}
+
+button {
+    background-color: #5d16eb;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #7d3df3;
+}
+
+h2 {
+    color: #5d16eb;
+    margin-bottom: 15px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #666;
+    padding: 10px;
+    text-align: center; /* Align text properly */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+th {
+    background-color: #5d16eb;
+    color: white;
+    font-weight: bold;
+}
+
+td {
+    background-color: black;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #222; /* Alternate row colors for better readability */
+}
+
+    </style>
+</head>
+<body>
+
+    <h2>Create User</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="create_user">
+
+        <label for="username">Username:</label>
+        <input type="text" name="username" autocomplete="off" required>
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" autocomplete="off" required>
+
+        <label for="first_name">First Name:</label>
+        <input type="text" name="first_name" required>
+
+        <label for="last_name">Last Name:</label>
+        <input type="text" name="last_name" required>
+
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" name="phone_number" required>
+
+        <label for="dob">Date of Birth:</label>
+        <input type="date" name="date_of_birth">
+
+        <button type="submit">Create User</button>
+    </form>
+
+    <h2>Create Subscription</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="create_subscription">
+
+        <label for="user">Select User:</label>
+        <select name="user_id" required>
+            {% for user in users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="offer">Select Offer:</label>
+        <select name="offer_id" required>
+            {% for offer in offers %}
+                <option value="{{ offer.id }}">{{ offer.title }} (₹{{ offer.amount }})</option>
+            {% endfor %}
+        </select>
+
+        <label for="transaction_id">Transaction ID:</label>
+        <input type="text" name="transaction_id" required>
+
+        <button type="submit">Create Subscription</button>
+    </form>
+
+    <h2>Existing Subscriptions</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Offer</th>
+            <th>Amount Paid</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+        </tr>
+        {% for subscription in subscriptions %}
+        <tr>
+            <td>{{ subscription.id }}</td>
+            <td>{{ subscription.user.username }}</td>
+            <td>{{ subscription.offer.title }}</td>
+            <td>₹{{ subscription.amount_paid }}</td>
+            <td>{{ subscription.start_date }}</td>
+            <td>{{ subscription.end_date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
