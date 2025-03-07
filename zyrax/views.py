@@ -41,10 +41,8 @@ VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 
-
-
-
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
+
 
 def is_superuser(user):
     return user.is_authenticated and user.is_superuser
@@ -500,96 +498,6 @@ def create_or_update_user_additional_info(request, user_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @api_view(['POST'])
-# def easebuzz_webhook(request):
-#     data = request.data
-#
-#     try:
-#         # Parse addedon timestamp safely
-#         addedon_value = parse_datetime(data.get("addedon")) or timezone.now()
-#
-#         transaction_data = {
-#             "txnid": data.get("txnid"),
-#             "amount": data.get("amount"),
-#             "status": data.get("status"),
-#             "payment_mode": data.get("mode"),
-#             "email": data.get("email"),
-#             "phone": data.get("phone"),
-#             "upi_va": data.get("upi_va"),
-#             "addedon": addedon_value,  # ✅ Fixed datetime parsing
-#             "bank_ref_num": data.get("bank_ref_num"),
-#             "easepayid": data.get("easepayid"),
-#             "firstname": data.get("firstname"),
-#             "productinfo": data.get("productinfo"),
-#             "service_tax": data.get("service_tax"),
-#             "service_charge": data.get("service_charge"),
-#             "net_amount_debit": data.get("net_amount_debit"),
-#             "settlement_amount": data.get("settlement_amount"),
-#             "cash_back_percentage": data.get("cash_back_percentage"),
-#         }
-#
-#         serializer = TransactionSerializer(data=transaction_data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"message": "Transaction stored successfully"}, status=status.HTTP_201_CREATED)
-#
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# @api_view(['POST'])
-# def easebuzz_webhook(request):
-#     try:
-#         logger.info("Received webhook request: %s", request.data)
-#
-#         # Ensure data is a dictionary
-#         data = request.data if isinstance(request.data, dict) else request.POST
-#
-#         # Debugging: Log each key
-#         for key, value in data.items():
-#             logger.info(f"Key: {key}, Value: {value}")
-#
-#         # Safely handle 'addedon' field
-#         addedon_value = data.get("addedon")
-#         if isinstance(addedon_value, str):
-#             addedon_value = parse_datetime(addedon_value) or timezone.now()
-#         else:
-#             addedon_value = timezone.now()
-#
-#         transaction_data = {
-#             "txnid": data.get("txnid"),
-#             "amount": data.get("amount") or 0.0,  # Ensure amount is not None
-#             "status": data.get("status"),
-#             "payment_mode": data.get("mode"),
-#             "email": data.get("email"),
-#             "phone": data.get("phone"),
-#             "upi_va": data.get("upi_va"),
-#             "addedon": addedon_value,
-#             "bank_ref_num": data.get("bank_ref_num"),
-#             "easepayid": data.get("easepayid"),
-#             "firstname": data.get("firstname"),
-#             "productinfo": data.get("productinfo"),
-#             "service_tax": data.get("service_tax") or 0.0,
-#             "service_charge": data.get("service_charge") or 0.0,
-#             "net_amount_debit": data.get("net_amount_debit") or 0.0,
-#             "settlement_amount": data.get("settlement_amount") or 0.0,
-#             "cash_back_percentage": data.get("cash_back_percentage") or 0.0,
-#         }
-#
-#         logger.info("Transaction Data: %s", transaction_data)
-#
-#         serializer = TransactionSerializer(data=transaction_data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"message": "Transaction stored successfully"}, status=status.HTTP_201_CREATED)
-#
-#         logger.error("Serializer validation failed: %s", serializer.errors)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#     except Exception as e:
-#         logger.error("Webhook processing error: %s", str(e), exc_info=True)
-#         return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
 @api_view(['POST'])
 def easebuzz_webhook(request):
     try:
@@ -610,7 +518,7 @@ def easebuzz_webhook(request):
             "status": event_data.get("status"),
             "payment_mode": event_data.get("payment_mode"),  # Ensure this key exists
             "email": event_data.get("email"),
-            "phone": event_data.get("phone"),
+            "phone": normalize_phone_number(event_data.get("+91"+"phone")),
             "upi_va": event_data.get("upi_va"),
             "addedon": addedon_value,
             "bank_ref_num": event_data.get("bank_ref_num"),
@@ -631,7 +539,7 @@ def easebuzz_webhook(request):
         serializer = TransactionSerializer(data=transaction_data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Transaction stored successfully"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Transaction stored successfully"}, status=status.HTTP_200_OK)
 
         logger.error("Serializer validation failed: %s", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -642,31 +550,7 @@ def easebuzz_webhook(request):
 
 
 
-
-
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def verify_payment(request):
-    phone_number = request.data.get("phone_number")
-    txnid = request.data.get("txnid")
-    amount = request.data.get("amount")
-
-    if not phone_number or not txnid or not amount:
-        return Response({"error": "phone_number, txnid, and amount are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        user_profile = get_object_or_404(UserProfile, phone_number=phone_number)
-        transaction = get_object_or_404(PatymentRecord, txnid=txnid, amount=amount, phone=phone_number, status="success")
-
-        return Response(
-            {"message": "Payment verified successfully", "transaction": TransactionSerializer(transaction).data},
-            status=status.HTTP_200_OK,
-        )
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def create_subscription(request):
     user_id = request.data.get("user_id")
     offer_id = request.data.get("offer_id")
@@ -691,3 +575,64 @@ def create_subscription(request):
     return Response({"message": "Subscription created successfully", "subscription_id": subscription.id}, status=status.HTTP_201_CREATED)
 
 
+@api_view(["POST"])
+def verify_and_subscribe(request):
+    phone_number = request.data.get("phone_number")
+    user_id = request.data.get("user_id")
+    offer_id = request.data.get("offer_id")
+
+    if not phone_number or not user_id or not offer_id:
+        return Response({"error": "phone_number, user_id, and offer_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Verify payment
+    transaction = get_object_or_404(PatymentRecord, phone=phone_number, status="success")
+
+    # Get user and offer
+    user = get_object_or_404(User, id=user_id)
+    offer = get_object_or_404(Offer, id=offer_id)
+
+    # Create subscription
+    subscription = UserMembership.objects.create(
+        user=user,
+        offer=offer,
+        transaction_id=transaction.txnid,
+        amount_paid=offer.amount,
+        start_date=now(),
+        end_date=now() + timedelta(days=offer.duration),
+        is_active=True
+    )
+
+    # Serialize subscription data
+    subscription_data = {
+        "subscription_id": subscription.id,
+        "user_id": subscription.user.id,
+        "offer_id": subscription.offer.id,
+        "transaction_id": subscription.transaction_id,
+        "amount_paid": str(subscription.amount_paid),
+        "start_date": subscription.start_date.strftime("%Y-%m-%d"),
+        "end_date": subscription.end_date.strftime("%Y-%m-%d"),
+        "is_active": subscription.is_active
+    }
+
+    return Response(
+        {
+            "message": "Subscription created successfully",
+            "subscription": subscription_data
+        },
+        status=status.HTTP_201_CREATED
+    )
+
+
+def normalize_phone_number(phone: str) -> str:
+    # Remove any spaces or non-digit characters (optional)
+    phone = "".join(filter(str.isdigit, phone))
+
+    # Remove leading zero if present
+    if phone.startswith("0"):
+        phone = phone[1:]
+
+    # Ensure the number is exactly 10 digits
+    if len(phone) == 10:
+        return "+91" + phone
+    else:
+        raise ValueError("Invalid phone number format")

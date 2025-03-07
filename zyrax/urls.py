@@ -22,7 +22,8 @@ from .views import (
     create_staff_user,
     easebuzz_webhook,
     create_subscription,
-    verify_payment
+    verify_payment,
+    verify_and_subscribe
 
 )
 
@@ -52,5 +53,6 @@ urlpatterns = [
     path('webhook/', easebuzz_webhook, name='easebuzz_webhook'),
     path("verify-payment/", verify_payment, name="verify_payment"),
     path('create-subscription/', create_subscription, name='create-subscription'),
+    path('verify-subscribe/', verify_and_subscribe, name='verify-subscribe'),
 
 ]
