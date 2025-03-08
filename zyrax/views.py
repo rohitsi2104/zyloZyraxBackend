@@ -512,6 +512,8 @@ def easebuzz_webhook(request):
         logger.info("Extracted event data: %s", event_data)
 
         addedon_value = parse_datetime(event_data.get("transaction_date")) or timezone.now()
+        phone = event_data.get("phone")
+        normalize_phone = normalize_phone_number(phone)
 
         transaction_data = {
             "txnid": event_data.get("txn_id"),  # Correct key mapping
@@ -519,7 +521,7 @@ def easebuzz_webhook(request):
             "status": event_data.get("status"),
             "payment_mode": event_data.get("payment_mode"),  # Ensure this key exists
             "email": event_data.get("email"),
-            "phone": normalize_phone_number(event_data.get("+91" + "phone")),
+            "phone":normalize_phone,
             "upi_va": event_data.get("upi_va"),
             "addedon": addedon_value,
             "bank_ref_num": event_data.get("bank_ref_num"),
