@@ -29,7 +29,6 @@ from django.utils import timezone
 from django.conf import settings
 from twilio.rest import Client
 import os
-from django.utils.timezone import now
 
 logger = logging.getLogger(__name__)
 # Define the Msg91 authentication and template IDs
@@ -701,14 +700,6 @@ def normalize_phone_number(phone: str) -> str:
     else:
         raise ValueError("Invalid phone number format")
 
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.models import User
-from django.utils.timezone import now
-from datetime import timedelta
-from .models import UserProfile, Offer, UserMembership
-
-
 def subscription_form(request):
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -762,8 +753,8 @@ def subscription_form(request):
                 offer=offer,
                 transaction_id=transaction_id,
                 amount_paid=offer.amount,
-                start_date=now(),
-                end_date=now() + timedelta(days=offer.duration),
+                start_date=timezone.now(),
+                end_date=timezone.now() + timedelta(days=offer.duration),
                 is_active=True
             )
 
