@@ -30,9 +30,9 @@ from django.conf import settings
 from twilio.rest import Client
 import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
+# from dotenv import load_dotenv
+#
+# load_dotenv()
 
 logger = logging.getLogger(__name__)
 # Define the Msg91 authentication and template IDs
@@ -672,20 +672,20 @@ def verify_and_subscribe(request):
     user = get_object_or_404(User, id=user_id)
     offer = get_object_or_404(Offer, id=offer_id)
 
-    # Get current date & calculate end date
+    # Calculate new subscription dates
     start_date = timezone.now()
     end_date = start_date + timedelta(days=offer.duration)
 
-    # Check if a subscription exists (active or inactive)
+    # Check if the user already has a subscription (active or inactive)
     subscription = UserMembership.objects.filter(user=user).first()
 
     if subscription:
-        # Update existing subscription with new payment details
+        # Update existing subscription
         subscription.start_date = start_date
         subscription.end_date = end_date
         subscription.transaction_id = transaction.txnid
-        subscription.amount_paid = offer.amount
-        subscription.is_active = True  # Reactivate if needed
+        subscription.amount_paid = offer.amount  # Overwrite previous payment amount
+        subscription.is_active = True  # Ensure it's active
         subscription.save()
         message = "Subscription updated successfully"
     else:
@@ -720,6 +720,7 @@ def verify_and_subscribe(request):
         },
         status=status.HTTP_200_OK
     )
+
 
 
 
