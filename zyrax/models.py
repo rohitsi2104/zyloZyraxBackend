@@ -235,7 +235,7 @@ class UserMembership(models.Model):
         if not self.end_date:
             self.end_date = self.start_date + timedelta(days=self.offer.duration)
         # Auto-deactivate if expired
-        if self.end_date < now():
+        if self.end_date < timezone.now():
             self.is_active = False
         super().save(*args, **kwargs)
 
