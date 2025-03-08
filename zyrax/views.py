@@ -643,7 +643,7 @@ def verify_and_subscribe(request):
     # Verify latest successful payment
     transaction = PatymentRecord.objects.filter(
         phone=phone_number, status="success"
-    ).order_by("-created_at").first()  # Get the latest payment
+    ).order_by("-addedon").first()
 
     if not transaction:
         return Response(
