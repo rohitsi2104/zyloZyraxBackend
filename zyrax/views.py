@@ -30,6 +30,10 @@ from django.conf import settings
 from twilio.rest import Client
 import os
 
+# from dotenv import load_dotenv
+#
+# load_dotenv()
+
 logger = logging.getLogger(__name__)
 # Define the Msg91 authentication and template IDs
 YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
@@ -578,6 +582,68 @@ def create_subscription(request):
     return Response({"message": "Subscription created successfully", "subscription_id": subscription.id},
                     status=status.HTTP_201_CREATED)
 
+#
+# @api_view(["POST"])
+# def verify_and_subscribe(request):
+#     phone_number = request.data.get("phone_number")
+#     user_id = request.data.get("user_id")
+#     offer_id = request.data.get("offer_id")
+#
+#     if not phone_number or not user_id or not offer_id:
+#         return Response(
+#             {"error": "phone_number, user_id, and offer_id are required"},
+#             status=status.HTTP_400_BAD_REQUEST
+#         )
+#
+#     # Verify latest successful payment
+#     transaction = PatymentRecord.objects.filter(
+#         phone=phone_number, status="success"
+#     ).order_by("-addedon").first()
+#
+#     if not transaction:
+#         return Response(
+#             {"error": "No successful payment found for this phone number"},
+#             status=status.HTTP_404_NOT_FOUND
+#         )
+#
+#     # Get user and offer
+#     user = get_object_or_404(User, id=user_id)
+#     offer = get_object_or_404(Offer, id=offer_id)
+#
+#     # Create subscription with correct timezone handling
+#     start_date = timezone.now()  # ✅ Use timezone.now() explicitly
+#     end_date = start_date + timedelta(days=offer.duration)
+#
+#     subscription = UserMembership.objects.create(
+#         user=user,
+#         offer=offer,
+#         transaction_id=transaction.txnid,
+#         amount_paid=offer.amount,
+#         start_date=start_date,
+#         end_date=end_date,
+#         is_active=True
+#     )
+#
+#     # Serialize subscription data
+#     subscription_data = {
+#         "subscription_id": subscription.id,
+#         "user_id": subscription.user.id,
+#         "offer_id": subscription.offer.id,
+#         "transaction_id": subscription.transaction_id,
+#         "amount_paid": str(subscription.amount_paid),
+#         "start_date": subscription.start_date.strftime("%Y-%m-%d"),
+#         "end_date": subscription.end_date.strftime("%Y-%m-%d"),
+#         "is_active": subscription.is_active
+#     }
+#
+#     return Response(
+#         {
+#             "message": "Subscription created successfully",
+#             "subscription": subscription_data
+#         },
+#         status=status.HTTP_201_CREATED
+#     )
+
 
 @api_view(["POST"])
 def verify_and_subscribe(request):
@@ -606,19 +672,34 @@ def verify_and_subscribe(request):
     user = get_object_or_404(User, id=user_id)
     offer = get_object_or_404(Offer, id=offer_id)
 
-    # Create subscription with correct timezone handling
-    start_date = timezone.now()  # ✅ Use timezone.now() explicitly
+    # Get current date & calculate end date
+    start_date = timezone.now()
     end_date = start_date + timedelta(days=offer.duration)
 
-    subscription = UserMembership.objects.create(
-        user=user,
-        offer=offer,
-        transaction_id=transaction.txnid,
-        amount_paid=offer.amount,
-        start_date=start_date,
-        end_date=end_date,
-        is_active=True
-    )
+    # Check if a subscription exists (active or inactive)
+    subscription = UserMembership.objects.filter(user=user).first()
+
+    if subscription:
+        # Update existing subscription with new payment details
+        subscription.start_date = start_date
+        subscription.end_date = end_date
+        subscription.transaction_id = transaction.txnid
+        subscription.amount_paid = offer.amount
+        subscription.is_active = True  # Reactivate if needed
+        subscription.save()
+        message = "Subscription updated successfully"
+    else:
+        # Create a new subscription if none exists
+        subscription = UserMembership.objects.create(
+            user=user,
+            offer=offer,
+            transaction_id=transaction.txnid,
+            amount_paid=offer.amount,
+            start_date=start_date,
+            end_date=end_date,
+            is_active=True
+        )
+        message = "Subscription created successfully"
 
     # Serialize subscription data
     subscription_data = {
@@ -634,10 +715,10 @@ def verify_and_subscribe(request):
 
     return Response(
         {
-            "message": "Subscription created successfully",
+            "message": message,
             "subscription": subscription_data
         },
-        status=status.HTTP_201_CREATED
+        status=status.HTTP_200_OK
     )
 
 
