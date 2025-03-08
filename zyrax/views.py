@@ -579,6 +579,55 @@ def create_subscription(request):
                     status=status.HTTP_201_CREATED)
 
 
+# @api_view(["POST"])
+# def verify_and_subscribe(request):
+#     phone_number = request.data.get("phone_number")
+#     user_id = request.data.get("user_id")
+#     offer_id = request.data.get("offer_id")
+#
+#     if not phone_number or not user_id or not offer_id:
+#         return Response({"error": "phone_number, user_id, and offer_id are required"},
+#                         status=status.HTTP_400_BAD_REQUEST)
+#
+#     # Verify payment
+#     transaction = get_object_or_404(PatymentRecord, phone=phone_number, status="success")
+#
+#     # Get user and offer
+#     user = get_object_or_404(User, id=user_id)
+#     offer = get_object_or_404(Offer, id=offer_id)
+#
+#     # Create subscription
+#     subscription = UserMembership.objects.create(
+#         user=user,
+#         offer=offer,
+#         transaction_id=transaction.txnid,
+#         amount_paid=offer.amount,
+#         start_date=now(),
+#         end_date=now() + timedelta(days=offer.duration),
+#         is_active=True
+#     )
+#
+#     # Serialize subscription data
+#     subscription_data = {
+#         "subscription_id": subscription.id,
+#         "user_id": subscription.user.id,
+#         "offer_id": subscription.offer.id,
+#         "transaction_id": subscription.transaction_id,
+#         "amount_paid": str(subscription.amount_paid),
+#         "start_date": subscription.start_date.strftime("%Y-%m-%d"),
+#         "end_date": subscription.end_date.strftime("%Y-%m-%d"),
+#         "is_active": subscription.is_active
+#     }
+#
+#     return Response(
+#         {
+#             "message": "Subscription created successfully",
+#             "subscription": subscription_data
+#         },
+#         status=status.HTTP_201_CREATED
+#     )
+
+
 @api_view(["POST"])
 def verify_and_subscribe(request):
     phone_number = request.data.get("phone_number")
@@ -586,11 +635,21 @@ def verify_and_subscribe(request):
     offer_id = request.data.get("offer_id")
 
     if not phone_number or not user_id or not offer_id:
-        return Response({"error": "phone_number, user_id, and offer_id are required"},
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "phone_number, user_id, and offer_id are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    # Verify payment
-    transaction = get_object_or_404(PatymentRecord, phone=phone_number, status="success")
+    # Verify latest successful payment
+    transaction = PatymentRecord.objects.filter(
+        phone=phone_number, status="success"
+    ).order_by("-created_at").first()  # Get the latest payment
+
+    if not transaction:
+        return Response(
+            {"error": "No successful payment found for this phone number"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
     # Get user and offer
     user = get_object_or_404(User, id=user_id)
