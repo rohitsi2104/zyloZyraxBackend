@@ -660,8 +660,8 @@ def verify_and_subscribe(request):
         offer=offer,
         transaction_id=transaction.txnid,
         amount_paid=offer.amount,
-        start_date=now(),
-        end_date=now() + timedelta(days=offer.duration),
+        start_date=timezone.now(),
+        end_date=timezone.now() + timedelta(days=offer.duration),
         is_active=True
     )
 
