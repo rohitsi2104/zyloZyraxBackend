@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership
+from django.utils.timezone import now
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership,ActiveUserMembership, InactiveUserMembership
 
 
 # Custom user creation form
@@ -78,12 +79,62 @@ class TransactionAdmin(admin.ModelAdmin):
 
 
 
+# class UserMembershipAdmin(admin.ModelAdmin):
+#     list_display = ("user", "offer", "transaction_id", "amount_paid", "start_date", "end_date", "is_active")
+#     search_fields = ("user__email", "transaction_id", "offer__title")
+#     list_filter = ("is_active", "start_date", "end_date")
+#
+# admin.site.register(UserMembership, UserMembershipAdmin)
+#
+#
+# class ActiveSubscribersAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
+#     ordering = ('-end_date',)
+#     list_filter = ('offer',)
+#
+#     def get_queryset(self, request):
+#         return UserMembership.active_subscribers.all()
+#
+# class InactiveSubscribersAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
+#     ordering = ('-end_date',)
+#     list_filter = ('offer',)
+#
+#     def get_queryset(self, request):
+#         return UserMembership.inactive_subscribers.all()
+#
+# admin.site.register(UserMembership, ActiveSubscribersAdmin)  # Default model admin
+# admin.site.register(UserMembership, InactiveSubscribersAdmin)  # Separate for inactive
+
+
+
+
 class UserMembershipAdmin(admin.ModelAdmin):
     list_display = ("user", "offer", "transaction_id", "amount_paid", "start_date", "end_date", "is_active")
     search_fields = ("user__email", "transaction_id", "offer__title")
     list_filter = ("is_active", "start_date", "end_date")
 
 admin.site.register(UserMembership, UserMembershipAdmin)
+admin.site.unregister(UserMembership)
+
+class ActiveSubscribersAdmin(admin.ModelAdmin):
+    list_display = ('user', 'offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
+    ordering = ('-end_date',)
+    list_filter = ('offer',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(end_date__gte=now(), is_active=True)
+
+class InactiveSubscribersAdmin(admin.ModelAdmin):
+    list_display = ('user', 'offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
+    ordering = ('-end_date',)
+    list_filter = ('offer',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(end_date__lt=now())
+
+admin.site.register(ActiveUserMembership, ActiveSubscribersAdmin)
+admin.site.register(InactiveUserMembership, InactiveSubscribersAdmin)
 
 
 

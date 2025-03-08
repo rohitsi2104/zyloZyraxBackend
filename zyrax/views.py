@@ -15,7 +15,7 @@ from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfil
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
     FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer, \
-    TransactionSerializer
+    TransactionSerializer, UserMembershipSerializer
 
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -641,37 +641,6 @@ def normalize_phone_number(phone: str) -> str:
         raise ValueError("Invalid phone number format")
 
 
-# def subscription_form(request):
-#     if request.method == "POST":
-#         user_id = request.POST.get("user_id")
-#         offer_id = request.POST.get("offer_id")
-#         transaction_id = request.POST.get("transaction_id")
-#
-#         if not user_id or not offer_id or not transaction_id:
-#             return render(request, "subscription_form.html", {"error": "All fields are required"})
-#
-#         user = get_object_or_404(User, id=user_id)
-#         offer = get_object_or_404(Offer, id=offer_id)
-#
-#         subscription = UserMembership.objects.create(
-#             user=user,
-#             offer=offer,
-#             transaction_id=transaction_id,
-#             amount_paid=offer.amount,
-#             start_date=now(),
-#             end_date=now() + timedelta(days=offer.duration),
-#             is_active=True
-#         )
-#
-#         return redirect("subscription_form")
-#
-#     users = User.objects.all()
-#     offers = Offer.objects.filter(is_active=True)
-#     subscriptions = UserMembership.objects.all()
-#
-#     return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
-
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User
 from django.utils.timezone import now
@@ -745,3 +714,25 @@ def subscription_form(request):
     subscriptions = UserMembership.objects.all()
 
     return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_user_subscription(request):
+    user_id = request.data.get('user_id')
+    if not user_id:
+        return Response({'error': 'User ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    subscriptions = UserMembership.objects.filter(user=user)
+    if not subscriptions.exists():
+        return Response({'message': 'No active subscriptions found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = UserMembershipSerializer(subscriptions, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
