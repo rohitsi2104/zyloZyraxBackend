@@ -30,9 +30,9 @@ from django.conf import settings
 from twilio.rest import Client
 import os
 
-# from dotenv import load_dotenv
-#
-# load_dotenv()
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 # Define the Msg91 authentication and template IDs
