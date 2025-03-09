@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions
 from rest_framework.views import APIView
+from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django import forms
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
@@ -16,7 +17,7 @@ from .serializers import BannerSerializer, OfferSerializer, CommunityPostSeriali
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
     FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer, \
     TransactionSerializer, UserMembershipSerializer
-
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
@@ -30,9 +31,6 @@ from django.conf import settings
 from twilio.rest import Client
 import os
 
-# from dotenv import load_dotenv
-#
-# load_dotenv()
 
 logger = logging.getLogger(__name__)
 # Define the Msg91 authentication and template IDs
@@ -806,8 +804,6 @@ def subscription_form(request):
     return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
 
 
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def get_user_subscription(request):
@@ -826,3 +822,52 @@ def get_user_subscription(request):
 
     serializer = UserMembershipSerializer(subscriptions, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def forgot_password(request):
+    phone_number = request.data.get("phone_number")
+
+    if not phone_number:
+        return Response({"error": "Phone number is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(username=phone_number)  # Assuming phone_number is stored in username field
+    except User.DoesNotExist:
+        return Response({"error": "User with this phone number not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    otp = str(random.randint(100000, 999999))
+    print(otp)
+    cache.set(f'otp_{phone_number}', otp, timeout=300)
+    send_otp(phone_number, otp)
+
+    return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def reset_password(request):
+    phone_number = request.data.get("phone_number")
+    otp = request.data.get("otp")
+    new_password = request.data.get("new_password")
+
+    if not phone_number or not otp or not new_password:
+        return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    cached_otp = cache.get(f'otp_{phone_number}')
+    if not cached_otp or cached_otp != otp:
+        return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(username=phone_number)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    user.password = make_password(new_password)
+    user.save()
+    cache.delete(f'otp_{phone_number}')
+
+    return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
