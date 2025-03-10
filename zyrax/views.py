@@ -42,6 +42,7 @@ VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 
+
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 
@@ -804,17 +805,30 @@ def subscription_form(request):
     return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
 
 
-@api_view(['POST'])
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def get_user_subscription(request):
+#     user_id = request.data.get('user_id')
+#     if not user_id:
+#         return Response({'error': 'User ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+#
+#     try:
+#         user = User.objects.get(id=user_id)
+#     except User.DoesNotExist:
+#         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+#
+#     subscriptions = UserMembership.objects.filter(user=user)
+#     if not subscriptions.exists():
+#         return Response({'message': 'No active subscriptions found'}, status=status.HTTP_404_NOT_FOUND)
+#
+#     serializer = UserMembershipSerializer(subscriptions, many=True)
+#     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_subscription(request):
-    user_id = request.data.get('user_id')
-    if not user_id:
-        return Response({'error': 'User ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    user = request.user  # Extract user from auth token
 
     subscriptions = UserMembership.objects.filter(user=user)
     if not subscriptions.exists():
@@ -822,6 +836,7 @@ def get_user_subscription(request):
 
     serializer = UserMembershipSerializer(subscriptions, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])
