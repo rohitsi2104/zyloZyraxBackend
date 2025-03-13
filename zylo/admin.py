@@ -1,12 +1,11 @@
-
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django import forms
-from .models import Zylo_Banner, Zylo_Offer, Zylo_Class,Tutors, Service_Post, Zylo_Testimonial, Zylo_CallbackRequest
+from django.contrib.auth.models import User
+from django.utils.timezone import now
+from .models import Zylo_Banner, Zylo_Offer, Zylo_Class, Tutors, Service_Post, Zylo_Testimonial, Zylo_CallbackRequest, \
+    Zylo_UserMembership, ActiveUserMembership, InactiveUserMembership
 
 
-
-# Custom user creation form
 class CustomUserCreationForm(forms.ModelForm):
     password = forms.CharField(label='Password', widget=forms.PasswordInput)
 
@@ -43,11 +42,13 @@ admin.site.register(User, CustomUserAdmin)
 class BannerAdmin(admin.ModelAdmin):
     list_display = ('title', 'description')  # Assuming 'title' and 'description' exist in the Banner model
 
+
 @admin.register(Zylo_CallbackRequest)
 class Zylo_CallbackRequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'email', 'phone', 'preferred_callback_time', 'created_at')
     search_fields = ('name', 'email', 'phone')
     list_filter = ('preferred_callback_time', 'created_at')
+
 
 @admin.register(Zylo_Testimonial)
 class Zylo_TestimonialAsmin(admin.ModelAdmin):
@@ -56,16 +57,53 @@ class Zylo_TestimonialAsmin(admin.ModelAdmin):
 
 @admin.register(Zylo_Offer)
 class OfferAdmin(admin.ModelAdmin):
-    list_display = ('title', 'amount', 'discount', 'duration', 'is_active')  # Ensure 'is_active' is a field in the Zylo_Offer model
+    list_display = (
+        'title', 'amount', 'discount', 'duration', 'is_active')  # Ensure 'is_active' is a field in the Zylo_Offer model
+
 
 @admin.register(Zylo_Class)
 class ClassAdmin(admin.ModelAdmin):
     list_display = ('title', 'time', 'duration', 'zoom_link', 'class_date')
 
+
 @admin.register(Tutors)
 class ClassAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'description')
 
+
 @admin.register(Service_Post)
 class Service_PostAdmin(admin.ModelAdmin):
     list_display = ('title', 'description')
+
+
+class UserMembershipAdmin(admin.ModelAdmin):
+    list_display = ("user", "offer", "transaction_id", "amount_paid", "start_date", "end_date", "is_active")
+    search_fields = ("user__email", "transaction_id", "offer__title")
+    list_filter = ("is_active", "start_date", "end_date")
+
+
+admin.site.register(Zylo_UserMembership, UserMembershipAdmin)
+admin.site.unregister(Zylo_UserMembership)
+
+
+class ActiveSubscribersAdmin(admin.ModelAdmin):
+    list_display = ('user', 'zylo_offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
+    ordering = ('-end_date',)
+    list_filter = ('zylo_offer',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(end_date__gte=now(), is_active=True)
+
+
+class InactiveSubscribersAdmin(admin.ModelAdmin):
+    list_display = ('user', 'zylo_offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
+    ordering = ('-end_date',)
+    list_filter = ('zylo_offer',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(end_date__lt=now())
+
+
+admin.site.register(ActiveUserMembership, ActiveSubscribersAdmin)
+admin.site.register(InactiveUserMembership, InactiveSubscribersAdmin)
+

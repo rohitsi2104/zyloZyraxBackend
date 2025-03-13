@@ -23,25 +23,21 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
 import random
 import string
-import http.client
-import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.conf import settings
 from twilio.rest import Client
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 logger = logging.getLogger(__name__)
-# Define the Msg91 authentication and template IDs
 YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
 AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
-
-
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
@@ -67,7 +63,6 @@ class StaffUserForm(forms.ModelForm):
         return user
 
 
-# View to create staff user (Only for superusers)
 @login_required
 @user_passes_test(is_superuser)
 def create_staff_user(request):
@@ -524,7 +519,7 @@ def easebuzz_webhook(request):
             "status": event_data.get("status"),
             "payment_mode": event_data.get("payment_mode"),  # Ensure this key exists
             "email": event_data.get("email"),
-            "phone":normalize_phone,
+            "phone": normalize_phone,
             "upi_va": event_data.get("upi_va"),
             "addedon": addedon_value,
             "bank_ref_num": event_data.get("bank_ref_num"),
@@ -580,6 +575,7 @@ def create_subscription(request):
 
     return Response({"message": "Subscription created successfully", "subscription_id": subscription.id},
                     status=status.HTTP_201_CREATED)
+
 
 #
 # @api_view(["POST"])
@@ -721,8 +717,6 @@ def verify_and_subscribe(request):
     )
 
 
-
-
 def normalize_phone_number(phone: str) -> str:
     # Remove any spaces or non-digit characters (optional)
     phone = "".join(filter(str.isdigit, phone))
@@ -736,6 +730,7 @@ def normalize_phone_number(phone: str) -> str:
         return "+91" + phone
     else:
         raise ValueError("Invalid phone number format")
+
 
 def subscription_form(request):
     if request.method == "POST":
@@ -836,7 +831,6 @@ def get_user_subscription(request):
 
     serializer = UserMembershipSerializer(subscriptions, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 
 @api_view(['POST'])
