@@ -25,8 +25,6 @@ from django.core.cache import cache
 import random
 import string
 from django.utils.timezone import now
-import http.client
-import json
 from django.utils import timezone
 from twilio.rest import Client
 import os
@@ -458,84 +456,6 @@ def create_subscription(request):
                     status=status.HTTP_201_CREATED)
 
 
-@api_view(["POST"])
-def verify_and_subscribe(request):
-    phone_number = request.data.get("phone_number")
-    user_id = request.data.get("user_id")
-    offer_id = request.data.get("offer_id")
-
-    if not phone_number or not user_id or not offer_id:
-        return Response(
-            {"error": "phone_number, user_id, and offer_id are required"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Verify latest successful payment
-    transaction = PatymentRecord.objects.filter(
-        phone=phone_number, status="success"
-    ).order_by("-addedon").first()
-
-    if not transaction:
-        return Response(
-            {"error": "No successful payment found for this phone number"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    # Get user and offer
-    user = get_object_or_404(User, id=user_id)
-    offer = get_object_or_404(Zylo_Offer, id=offer_id)
-
-    # Calculate new subscription dates
-    start_date = timezone.now()
-    end_date = start_date + timedelta(days=offer.duration)
-
-    # Check if the user already has a subscription (active or inactive)
-    subscription = Zylo_UserMembership.objects.filter(user=user).first()
-
-    if subscription:
-        # Update existing subscription
-        subscription.start_date = start_date
-        subscription.end_date = end_date
-        subscription.transaction_id = transaction.txnid
-        subscription.amount_paid = offer.amount  # Overwrite previous payment amount
-        subscription.is_active = True  # Ensure it's active
-        subscription.save()
-        message = "Subscription updated successfully"
-    else:
-        # Create a new subscription if none exists
-        subscription = Zylo_UserMembership.objects.create(
-            user=user,
-            zylo_offer=offer,
-            transaction_id=transaction.txnid,
-            amount_paid=offer.amount,
-            start_date=start_date,
-            end_date=end_date,
-            is_active=True
-        )
-        message = "Subscription created successfully"
-
-    # Serialize subscription data
-    subscription_data = {
-        "subscription_id": subscription.id,
-        "user_id": subscription.user.id,
-        "offer_id": subscription.zylo_offer.id,
-        "transaction_id": subscription.transaction_id,
-        "amount_paid": str(subscription.amount_paid),
-        "start_date": subscription.start_date.strftime("%Y-%m-%d"),
-        "end_date": subscription.end_date.strftime("%Y-%m-%d"),
-        "is_active": subscription.is_active
-    }
-
-    return Response(
-        {
-            "message": message,
-            "subscription": subscription_data
-        },
-        status=status.HTTP_200_OK
-    )
-
-
-
 def normalize_phone_number(phone: str) -> str:
     # Remove any spaces or non-digit characters (optional)
     phone = "".join(filter(str.isdigit, phone))
@@ -549,6 +469,76 @@ def normalize_phone_number(phone: str) -> str:
         return "+91" + phone
     else:
         raise ValueError("Invalid phone number format")
+
+#
+#
+# def subscription_form(request):
+#     if request.method == "POST":
+#         form_type = request.POST.get("form_type")
+#
+#         if form_type == "create_user":
+#             # Extract user details from the form
+#             username = request.POST.get("username")
+#             password = request.POST.get("password")
+#             first_name = request.POST.get("first_name")
+#             last_name = request.POST.get("last_name")
+#             phone_number = request.POST.get("phone_number")
+#             date_of_birth = request.POST.get("date_of_birth")
+#
+#             # Phone number formatting
+#             phone_number = phone_number.lstrip("0")  # Remove leading 0
+#             if len(phone_number) == 10:
+#                 phone_number = "+91" + phone_number  # Add +91 prefix
+#
+#             # Check if user exists
+#             if User.objects.filter(username=username).exists():
+#                 return render(request, "subscription_form.html", {"error": "Username already taken."})
+#
+#             if UserProfile.objects.filter(phone_number=phone_number).exists():
+#                 return render(request, "subscription_form.html", {"error": "Phone number already registered."})
+#
+#             # Create User and UserProfile
+#             user = User.objects.create_user(username=username, password=password)
+#             UserProfile.objects.create(
+#                 user=user,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 phone_number=phone_number,
+#                 date_of_birth=date_of_birth if date_of_birth else None
+#             )
+#
+#             return redirect("subscription_form")
+#
+#         elif form_type == "create_subscription":
+#             user_id = request.POST.get("user_id")
+#             offer_id = request.POST.get("offer_id")
+#             transaction_id = request.POST.get("transaction_id")
+#
+#             if not user_id or not offer_id or not transaction_id:
+#                 return render(request, "subscription_form.html", {"error": "All fields are required"})
+#
+#             user = get_object_or_404(User, id=user_id)
+#             offer = get_object_or_404(Zylo_Offer, id=offer_id)
+#
+#             subscription = Zylo_UserMembership.objects.create(
+#                 user=user,
+#                 zylo_offer=offer,
+#                 transaction_id=transaction_id,
+#                 amount_paid=offer.amount,
+#                 start_date=timezone.now(),
+#                 end_date=timezone.now() + timedelta(days=offer.duration),
+#                 is_active=True
+#             )
+#
+#             return redirect("subscription_form")
+#
+#     # Fetch data for display
+#     users = User.objects.all()
+#     offers = Zylo_Offer.objects.filter(is_active=True)
+#     subscriptions = Zylo_UserMembership.objects.all()
+#
+#     return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
+
 
 
 def subscription_form(request):
@@ -620,6 +610,7 @@ def subscription_form(request):
 
 
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_subscription(request):
@@ -631,8 +622,6 @@ def get_user_subscription(request):
 
     serializer = Zylo_UserMembershipSerializer(subscriptions, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 
 
 @api_view(['POST'])
