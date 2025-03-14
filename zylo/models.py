@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.template.defaulttags import now
+from datetime import timedelta
 
 
 # from django.contrib.auth.models import User
@@ -44,7 +46,6 @@ class Zylo_CallbackRequest(models.Model):
         return f"Callback Request from {self.name}"
 
 
-
 class Zylo_Offer(models.Model):
     title = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -62,14 +63,15 @@ class Zylo_Offer(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='zylo_user_profile')  # Link to the User model
+    user = models.OneToOneField(User, on_delete=models.CASCADE,
+                                related_name='zylo_user_profile')  # Link to the User model
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     phone_number = models.CharField(max_length=15, unique=True)
     date_of_birth = models.DateField()
 
     def __str__(self):
-        return self.user.username  # Return the username as the string representation
+        return self.user.username
 
 
 class CommunityPost(models.Model):
@@ -92,7 +94,8 @@ class PostImage(models.Model):
 
 # Comment Model
 class Comments(models.Model):
-    post = models.ForeignKey(CommunityPost, on_delete=models.CASCADE, related_name='zylo_comments')  # Link to community post
+    post = models.ForeignKey(CommunityPost, on_delete=models.CASCADE,
+                             related_name='zylo_comments')  # Link to community post
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link to user
     content = models.TextField()  # Content of the comment
     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the comment is created
@@ -173,3 +176,51 @@ class UserAdditionalInfo(models.Model):
 
     def __str__(self):
         return f"{self.user_profile.user.username}'s Additional Info"
+
+
+class Zylo_ActiveSubscribersManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(end_date__gte=now(), is_active=True)
+
+
+class Zylo_InactiveSubscribersManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(end_date__lt=now())  # Expired subscriptions
+
+
+class Zylo_UserMembership(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    zylo_offer = models.ForeignKey('Zylo_Offer', on_delete=models.CASCADE)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    start_date = models.DateTimeField(default=now)
+    end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    objects = models.Manager()
+    active_subscribers = Zylo_ActiveSubscribersManager()
+    inactive_subscribers = Zylo_InactiveSubscribersManager()
+
+    def save(self, *args, **kwargs):
+        if not self.end_date:
+            self.end_date = self.start_date + timedelta(days=self.zylo_offer.duration)
+        # Auto-deactivate if expired
+        if self.end_date < timezone.now():
+            self.is_active = False
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user} - {self.zylo_offer.title}"
+
+
+class ActiveUserMembership(Zylo_UserMembership):
+    class Meta:
+        proxy = True
+        verbose_name = "Active Subscriber"
+        verbose_name_plural = "Active Subscribers"
+
+
+class InactiveUserMembership(Zylo_UserMembership):
+    class Meta:
+        proxy = True
+        verbose_name = "Inactive Subscriber"
+        verbose_name_plural = "Inactive Subscribers"

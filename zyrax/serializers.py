@@ -20,6 +20,8 @@ class CallbackRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = CallbackRequest
         fields = ['id', 'name', 'email', 'phone', 'message', 'preferred_callback_time', 'created_at']
+
+
 class OfferSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offer
@@ -69,8 +71,6 @@ class CommunityPostSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'content', 'images', 'created_at']
 
 
-
-
 # Post Image Serializer
 class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -117,6 +117,7 @@ class FullUserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['user', 'first_name', 'last_name', 'phone_number', 'date_of_birth', 'additional_info']
+
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
