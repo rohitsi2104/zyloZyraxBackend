@@ -202,14 +202,14 @@ class Zylo_UserMembership(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.end_date:
-            self.end_date = self.start_date + timedelta(days=self.offer.duration)
+            self.end_date = self.start_date + timedelta(days=self.zylo_offer.duration)
         # Auto-deactivate if expired
         if self.end_date < timezone.now():
             self.is_active = False
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.user} - {self.offer.title}"
+        return f"{self.user} - {self.zylo_offer.title}"
 
 
 class ActiveUserMembership(Zylo_UserMembership):
