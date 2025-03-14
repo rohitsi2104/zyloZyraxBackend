@@ -20,12 +20,12 @@ from .views import (
     get_testimonials,
     callback_request,
     create_staff_user,
-    create_subscription,
+    # create_subscription,
     # verify_and_subscribe,
     # subscription_form,
-    get_user_subscription,
-    forgot_password,
-    reset_password
+    # get_user_subscription,
+    # forgot_password,
+    # reset_password
 )
 
 
