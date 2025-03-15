@@ -2,8 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.timezone import now
-from .models import Zylo_Banner, Zylo_Offer, Zylo_Class, Tutors, Service_Post, Zylo_Testimonial, Zylo_CallbackRequest, \
-    Zylo_UserMembership, ActiveUserMembership, InactiveUserMembership
+from .models import Zylo_Banner, Zylo_Offer, Zylo_Class, Tutors, Service_Post, Zylo_Testimonial, Zylo_CallbackRequest
 
 
 class CustomUserCreationForm(forms.ModelForm):
@@ -75,35 +74,4 @@ class ClassAdmin(admin.ModelAdmin):
 class Service_PostAdmin(admin.ModelAdmin):
     list_display = ('title', 'description')
 
-
-class UserMembershipAdmin(admin.ModelAdmin):
-    list_display = ("user", "offer", "transaction_id", "amount_paid", "start_date", "end_date", "is_active")
-    search_fields = ("user__email", "transaction_id", "offer__title")
-    list_filter = ("is_active", "start_date", "end_date")
-
-
-admin.site.register(Zylo_UserMembership, UserMembershipAdmin)
-admin.site.unregister(Zylo_UserMembership)
-
-
-class ActiveSubscribersAdmin(admin.ModelAdmin):
-    list_display = ('user', 'zylo_offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
-    ordering = ('-end_date',)
-    list_filter = ('zylo_offer',)
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(end_date__gte=now(), is_active=True)
-
-
-class InactiveSubscribersAdmin(admin.ModelAdmin):
-    list_display = ('user', 'zylo_offer', 'transaction_id', 'amount_paid', 'start_date', 'end_date', 'is_active')
-    ordering = ('-end_date',)
-    list_filter = ('zylo_offer',)
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(end_date__lt=now())
-
-
-admin.site.register(ActiveUserMembership, ActiveSubscribersAdmin)
-admin.site.register(InactiveUserMembership, InactiveSubscribersAdmin)
 
