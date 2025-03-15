@@ -6,15 +6,9 @@
       "use": "@vercel/python"
     }
   ],
-  "functions": {
-    "zyloZyraxBackend/wsgi.py": {
-      "runtime": "python3.9",
-      "maxDuration": 60
-    }
-  },
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/(.*)",
       "dest": "zyloZyraxBackend/wsgi.py"
     }
   ]
