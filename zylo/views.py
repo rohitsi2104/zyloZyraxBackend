@@ -37,7 +37,6 @@ ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
-
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 
@@ -60,6 +59,7 @@ class StaffUserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
 
 @login_required
 @user_passes_test(is_superuser)
@@ -428,7 +428,7 @@ def create_or_update_user_additional_info(request, user_id):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#
+
 # @api_view(["POST"])
 # def create_subscription(request):
 #     user_id = request.data.get("user_id")
@@ -455,6 +455,7 @@ def create_or_update_user_additional_info(request, user_id):
 #     return Response({"message": "Subscription created successfully", "subscription_id": subscription.id},
 #                     status=status.HTTP_201_CREATED)
 #
+#
 # @api_view(["POST"])
 # def verify_and_subscribe(request):
 #     phone_number = request.data.get("phone_number")
@@ -467,7 +468,6 @@ def create_or_update_user_additional_info(request, user_id):
 #             status=status.HTTP_400_BAD_REQUEST
 #         )
 #
-#     # Verify latest successful payment
 #     transaction = PatymentRecord.objects.filter(
 #         phone=phone_number, status="success"
 #     ).order_by("-addedon").first()
@@ -478,19 +478,15 @@ def create_or_update_user_additional_info(request, user_id):
 #             status=status.HTTP_404_NOT_FOUND
 #         )
 #
-#     # Get user and offer
 #     user = get_object_or_404(User, id=user_id)
 #     offer = get_object_or_404(Zylo_Offer, id=offer_id)
 #
-#     # Calculate new subscription dates
 #     start_date = timezone.now()
 #     end_date = start_date + timedelta(days=offer.duration)
 #
-#     # Check if the user already has a subscription (active or inactive)
 #     subscription = Zylo_UserMembership.objects.filter(user=user).first()
 #
 #     if subscription:
-#         # Update existing subscription
 #         subscription.start_date = start_date
 #         subscription.end_date = end_date
 #         subscription.transaction_id = transaction.txnid
@@ -511,7 +507,6 @@ def create_or_update_user_additional_info(request, user_id):
 #         )
 #         message = "Subscription created successfully"
 #
-#     # Serialize subscription data
 #     subscription_data = {
 #         "subscription_id": subscription.id,
 #         "user_id": subscription.user.id,
@@ -530,9 +525,7 @@ def create_or_update_user_additional_info(request, user_id):
 #         },
 #         status=status.HTTP_200_OK
 #     )
-#
-#
-#
+
 # def normalize_phone_number(phone: str) -> str:
 #     # Remove any spaces or non-digit characters (optional)
 #     phone = "".join(filter(str.isdigit, phone))
@@ -627,52 +620,52 @@ def create_or_update_user_additional_info(request, user_id):
 #
 #     serializer = Zylo_UserMembershipSerializer(subscriptions, many=True)
 #     return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#
-# @api_view(['POST'])
-# @authentication_classes([])
-# @permission_classes([AllowAny])
-# def forgot_password(request):
-#     phone_number = request.data.get("phone_number")
-#
-#     if not phone_number:
-#         return Response({"error": "Phone number is required"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#     try:
-#         user = User.objects.get(username=phone_number)  # Assuming phone_number is stored in username field
-#     except User.DoesNotExist:
-#         return Response({"error": "User with this phone number not found"}, status=status.HTTP_404_NOT_FOUND)
-#
-#     otp = str(random.randint(100000, 999999))
-#     print(otp)
-#     cache.set(f'otp_{phone_number}', otp, timeout=300)
-#     send_otp(phone_number, otp)
-#
-#     return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
-#
-#
-# @api_view(['POST'])
-# @authentication_classes([])
-# @permission_classes([AllowAny])
-# def reset_password(request):
-#     phone_number = request.data.get("phone_number")
-#     otp = request.data.get("otp")
-#     new_password = request.data.get("new_password")
-#
-#     if not phone_number or not otp or not new_password:
-#         return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#     cached_otp = cache.get(f'otp_{phone_number}')
-#     if not cached_otp or cached_otp != otp:
-#         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#     try:
-#         user = User.objects.get(username=phone_number)
-#     except User.DoesNotExist:
-#         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-#
-#     user.password = make_password(new_password)
-#     user.save()
-#     cache.delete(f'otp_{phone_number}')
-#
-#     return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def forgot_password(request):
+    phone_number = request.data.get("phone_number")
+
+    if not phone_number:
+        return Response({"error": "Phone number is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(username=phone_number)  # Assuming phone_number is stored in username field
+    except User.DoesNotExist:
+        return Response({"error": "User with this phone number not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    otp = str(random.randint(100000, 999999))
+    print(otp)
+    cache.set(f'otp_{phone_number}', otp, timeout=300)
+    send_otp(phone_number, otp)
+
+    return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def reset_password(request):
+    phone_number = request.data.get("phone_number")
+    otp = request.data.get("otp")
+    new_password = request.data.get("new_password")
+
+    if not phone_number or not otp or not new_password:
+        return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    cached_otp = cache.get(f'otp_{phone_number}')
+    if not cached_otp or cached_otp != otp:
+        return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(username=phone_number)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    user.password = make_password(new_password)
+    user.save()
+    cache.delete(f'otp_{phone_number}')
+
+    return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)

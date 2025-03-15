@@ -24,8 +24,8 @@ from .views import (
     # verify_and_subscribe,
     # subscription_form,
     # get_user_subscription,
-    # forgot_password,
-    # reset_password
+    forgot_password,
+    reset_password
 )
 
 
@@ -56,7 +56,7 @@ urlpatterns = [
     # path('verify-subscribe/', verify_and_subscribe, name='verify-subscribe'),
     # path("create-subscriptions-manually/", subscription_form, name="subscription_form"),
     # path("fetch-subscription/", get_user_subscription, name="get_user_subscription"),
-    # path("forgot-password/", forgot_password, name="forgot_password"),
-    # path("reset_password/", reset_password, name="reset_password"),
+    path("forgot-password/", forgot_password, name="forgot_password"),
+    path("reset_password/", reset_password, name="reset_password"),
 
 ]
