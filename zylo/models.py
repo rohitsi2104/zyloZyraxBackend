@@ -177,3 +177,52 @@ class UserAdditionalInfo(models.Model):
     def __str__(self):
         return f"{self.user_profile.user.username}'s Additional Info"
 
+
+
+
+class Zylo_ActiveSubscribersManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(end_date__gte=now(), is_active=True)
+
+
+class Zylo_InactiveSubscribersManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(end_date__lt=now())  # Expired subscriptions
+
+
+class Zylo_UserMembership(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    zylo_offer = models.ForeignKey('Zylo_Offer', on_delete=models.CASCADE)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    start_date = models.DateTimeField(default=now)
+    end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    objects = models.Manager()
+    active_subscribers = Zylo_ActiveSubscribersManager()
+    inactive_subscribers = Zylo_InactiveSubscribersManager()
+
+    def save(self, *args, **kwargs):
+        if not self.end_date:
+            self.end_date = self.start_date + timedelta(days=self.zylo_offer.duration)
+        # Auto-deactivate if expired
+        if self.end_date < timezone.now():
+            self.is_active = False
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user} - {self.zylo_offer.title}"
+
+
+class ActiveUserMembership(Zylo_UserMembership):
+    class Meta:
+        proxy = True
+        verbose_name = "Active Subscriber"
+        verbose_name_plural = "Active Subscribers"
+
+
+class InactiveUserMembership(Zylo_UserMembership):
+    class Meta:
+        proxy = True
+        verbose_name = "Inactive Subscriber"
+        verbose_name_plural = "Inactive Subscribers"
