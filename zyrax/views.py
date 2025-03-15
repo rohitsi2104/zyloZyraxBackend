@@ -27,9 +27,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from twilio.rest import Client
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
