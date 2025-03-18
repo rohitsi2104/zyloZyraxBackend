@@ -36,7 +36,7 @@ YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
 AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
-VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
+VERIFY_SERVICE_SID = os.getenv('ZYLO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 
@@ -411,7 +411,7 @@ def create_or_update_user_additional_info(request, user_id):
         user = User.objects.get(id=user_id)
 
         # Fetch the related UserProfile using the related_name 'zyrax_user_profile'
-        user_profile = user.zyrax_user_profile  # Using the related_name
+        user_profile = user.zylo_user_profile  # Using the related_name
 
     except User.DoesNotExist:
         return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
