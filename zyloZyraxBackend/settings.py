@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-hdg0x5q-fio!57n0_8b^vh(ev+*f1+mrk-z196y_p&i8^rxidr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1', 'easebuzz.in', 'twilio.com']
+ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1', 'easebuzz.in']
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -62,6 +62,7 @@ SIMPLE_JWT = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -69,7 +70,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
