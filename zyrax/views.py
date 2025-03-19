@@ -27,6 +27,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from twilio.rest import Client
 import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 logger = logging.getLogger(__name__)
@@ -94,16 +98,29 @@ def create_staff_user(request):
 #     data = res.read()
 #     return json.loads(data.decode("utf-8"))
 
-def send_otp(phone_number, otp):
+# def send_otp(phone_number, otp):
+#     try:
+#         # Send OTP using Twilio Verify API
+#         verification = client.verify \
+#             .v2 \
+#             .services(VERIFY_SERVICE_SID) \
+#             .verifications \
+#             .create(to=phone_number, channel='sms', custom_code=otp)
+#
+#         # Return the verification SID as confirmation
+#         return {"status": "success", "verification_sid": verification.sid, "message": "OTP sent successfully"}
+#     except Exception as e:
+#         return {"status": "error", "message": str(e)}
+
+def send_otp(phone_number):
     try:
-        # Send OTP using Twilio Verify API
+        # Send OTP using Twilio Verify API (without custom code)
         verification = client.verify \
             .v2 \
             .services(VERIFY_SERVICE_SID) \
             .verifications \
-            .create(to=phone_number, channel='sms', custom_code=otp)
+            .create(to=phone_number, channel='sms')
 
-        # Return the verification SID as confirmation
         return {"status": "success", "verification_sid": verification.sid, "message": "OTP sent successfully"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -195,7 +212,7 @@ def register(request):
 
         otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
         cache.set(f'otp_{phone_number}', otp, timeout=300)
-        send_otp(phone_number, otp)
+        send_otp(phone_number)
         print(otp)
 
         cache.set(f'registration_data_{phone_number}', {
@@ -210,36 +227,91 @@ def register(request):
         return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Verify OTP
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verify_otp(request):
     phone_number = request.data.get('phone_number')
     otp_entered = request.data.get('otp')
-    stored_otp = cache.get(f'otp_{phone_number}')
 
-    if stored_otp and stored_otp == otp_entered:
-        registration_data = cache.get(f'registration_data_{phone_number}')
-        if registration_data:
-            user = User.objects.create_user(
-                username=phone_number,
-                password=registration_data['password'],
-                first_name=registration_data['first_name'],
-                last_name=registration_data['last_name']
-            )
-            UserProfile.objects.create(
-                user=user,
-                first_name=registration_data['first_name'],
-                last_name=registration_data['last_name'],
-                phone_number=phone_number,
-                date_of_birth=registration_data['date_of_birth']
-            )
-            cache.delete(f'registration_data_{phone_number}')
-            return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+    if not phone_number or not otp_entered:
+        return Response({"error": "Phone number and OTP are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Verify OTP using Twilio API
+        verification_check = client.verify \
+            .v2 \
+            .services(VERIFY_SERVICE_SID) \
+            .verification_checks \
+            .create(to=phone_number, code=otp_entered)
+
+        if verification_check.status == "approved":
+            # Retrieve registration data from cache
+            registration_data = cache.get(f'registration_data_{phone_number}')
+            if registration_data:
+                # Create User
+                user = User.objects.create_user(
+                    username=phone_number,
+                    password=registration_data['password'],
+                    first_name=registration_data['first_name'],
+                    last_name=registration_data['last_name']
+                )
+                # Create User Profile
+                UserProfile.objects.create(
+                    user=user,
+                    first_name=registration_data['first_name'],
+                    last_name=registration_data['last_name'],
+                    phone_number=phone_number,
+                    date_of_birth=registration_data['date_of_birth']
+                )
+
+                # Clear cache after successful registration
+                cache.delete(f'registration_data_{phone_number}')
+
+                return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
+
         else:
-            return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+#
+# # Verify OTP
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def verify_otp(request):
+#     phone_number = request.data.get('phone_number')
+#     otp_entered = request.data.get('otp')
+#     stored_otp = cache.get(f'otp_{phone_number}')
+#
+#     if stored_otp and stored_otp == otp_entered:
+#         registration_data = cache.get(f'registration_data_{phone_number}')
+#         if registration_data:
+#             user = User.objects.create_user(
+#                 username=phone_number,
+#                 password=registration_data['password'],
+#                 first_name=registration_data['first_name'],
+#                 last_name=registration_data['last_name']
+#             )
+#             UserProfile.objects.create(
+#                 user=user,
+#                 first_name=registration_data['first_name'],
+#                 last_name=registration_data['last_name'],
+#                 phone_number=phone_number,
+#                 date_of_birth=registration_data['date_of_birth']
+#             )
+#             cache.delete(f'registration_data_{phone_number}')
+#             return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+#         else:
+#             return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
+#     else:
+#         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # @api_view(['POST'])
@@ -850,9 +922,37 @@ def forgot_password(request):
     otp = str(random.randint(100000, 999999))
     print(otp)
     cache.set(f'otp_{phone_number}', otp, timeout=300)
-    send_otp(phone_number, otp)
+    send_otp(phone_number)
 
     return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+
+#
+# @api_view(['POST'])
+# @authentication_classes([])
+# @permission_classes([AllowAny])
+# def reset_password(request):
+#     phone_number = request.data.get("phone_number")
+#     otp = request.data.get("otp")
+#     new_password = request.data.get("new_password")
+#
+#     if not phone_number or not otp or not new_password:
+#         return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+#
+#     cached_otp = cache.get(f'otp_{phone_number}')
+#     if not cached_otp or cached_otp != otp:
+#         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+#
+#     try:
+#         user = User.objects.get(username=phone_number)
+#     except User.DoesNotExist:
+#         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+#
+#     user.password = make_password(new_password)
+#     user.save()
+#     cache.delete(f'otp_{phone_number}')
+#
+#     return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])
@@ -866,17 +966,28 @@ def reset_password(request):
     if not phone_number or not otp or not new_password:
         return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    cached_otp = cache.get(f'otp_{phone_number}')
-    if not cached_otp or cached_otp != otp:
-        return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
-
     try:
-        user = User.objects.get(username=phone_number)
-    except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Verify OTP using Twilio Verify API
+        verification_check = client.verify \
+            .v2 \
+            .services(VERIFY_SERVICE_SID) \
+            .verification_checks \
+            .create(to=phone_number, code=otp)
 
-    user.password = make_password(new_password)
-    user.save()
-    cache.delete(f'otp_{phone_number}')
+        if verification_check.status != "approved":
+            return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+        # Check if user exists
+        try:
+            user = User.objects.get(username=phone_number)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Reset password
+        user.password = make_password(new_password)
+        user.save()
+
+        return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
