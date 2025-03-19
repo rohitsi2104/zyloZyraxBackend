@@ -255,3 +255,10 @@ class InactiveUserMembership(UserMembership):
         verbose_name_plural = "Inactive Subscribers"
 
 
+# class OTP(models.Model):
+#     phone_number = models.CharField(max_length=15, unique=True)
+#     otp = models.CharField(max_length=6)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#
+#     def is_valid(self):
+#         return (now() - self.created_at).seconds < 300  # 5 minutes
