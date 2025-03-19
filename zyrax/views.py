@@ -42,6 +42,9 @@ ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
+print("..................................................................................",ACCOUNT_SID)
+print("..................................................................................",VERIFY_SERVICE_SID)
+print("..................................................................................",AUTH_TOKEN)
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
@@ -233,7 +236,9 @@ def register(request):
 def verify_otp(request):
     phone_number = request.data.get('phone_number')
     otp_entered = request.data.get('otp')
-
+    print("..................................................................................", ACCOUNT_SID)
+    print("..................................................................................", VERIFY_SERVICE_SID)
+    print("..................................................................................", AUTH_TOKEN)
     if not phone_number or not otp_entered:
         return Response({"error": "Phone number and OTP are required"}, status=status.HTTP_400_BAD_REQUEST)
 
