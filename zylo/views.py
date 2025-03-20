@@ -34,7 +34,7 @@ YOUR_TEMPLATE_ID = "6713a05bd6fc05281162ae92"
 AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
-VERIFY_SERVICE_SID = os.getenv('ZYLO_ACCOUNT_SID')
+ZYLO_VERIFY_SERVICE_SID = os.getenv('ZYLO_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
@@ -81,7 +81,7 @@ def send_otp(phone_number, otp):
         # Send OTP using Twilio Verify API
         verification = client.verify \
             .v2 \
-            .services(VERIFY_SERVICE_SID) \
+            .services(ZYLO_VERIFY_SERVICE_SID) \
             .verifications \
             .create(to=phone_number, channel='sms', custom_code=otp)
         return {"status": "success", "verification_sid": verification.sid, "message": "OTP sent successfully"}

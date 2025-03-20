@@ -39,11 +39,11 @@ AUTH_KEY = "432827AWgMjqCXpNu6713a234P1"
 
 
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
-VERIFY_SERVICE_SID = os.getenv('TWILIO_ACCOUNT_SID')
+ZYRAX_VERIFY_SERVICE_SID = os.getenv('ZYRAX_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
 print("..................................................................................",ACCOUNT_SID)
-print("..................................................................................",VERIFY_SERVICE_SID)
+print("..................................................................................",ZYRAX_VERIFY_SERVICE_SID)
 print("..................................................................................",AUTH_TOKEN)
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
@@ -106,7 +106,7 @@ def create_staff_user(request):
 #         # Send OTP using Twilio Verify API
 #         verification = client.verify \
 #             .v2 \
-#             .services(VERIFY_SERVICE_SID) \
+#             .services(ZYRAX_VERIFY_SERVICE_SID) \
 #             .verifications \
 #             .create(to=phone_number, channel='sms', custom_code=otp)
 #
@@ -120,7 +120,7 @@ def send_otp(phone_number):
         # Send OTP using Twilio Verify API (without custom code)
         verification = client.verify \
             .v2 \
-            .services(VERIFY_SERVICE_SID) \
+            .services(ZYRAX_VERIFY_SERVICE_SID) \
             .verifications \
             .create(to=phone_number, channel='sms')
 
@@ -237,7 +237,7 @@ def verify_otp(request):
     phone_number = request.data.get('phone_number')
     otp_entered = request.data.get('otp')
     print("..................................................................................", ACCOUNT_SID)
-    print("..................................................................................", VERIFY_SERVICE_SID)
+    print("..................................................................................", ZYRAX_VERIFY_SERVICE_SID)
     print("..................................................................................", AUTH_TOKEN)
     if not phone_number or not otp_entered:
         return Response({"error": "Phone number and OTP are required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -246,7 +246,7 @@ def verify_otp(request):
         # Verify OTP using Twilio API
         verification_check = client.verify \
             .v2 \
-            .services(VERIFY_SERVICE_SID) \
+            .services(ZYRAX_VERIFY_SERVICE_SID) \
             .verification_checks \
             .create(to=phone_number, code=otp_entered)
 
@@ -975,7 +975,7 @@ def reset_password(request):
         # Verify OTP using Twilio Verify API
         verification_check = client.verify \
             .v2 \
-            .services(VERIFY_SERVICE_SID) \
+            .services(ZYRAX_VERIFY_SERVICE_SID) \
             .verification_checks \
             .create(to=phone_number, code=otp)
 
