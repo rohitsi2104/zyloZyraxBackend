@@ -160,3 +160,9 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+ACCOUNT_SID = os.getenv("ACCOUNT_SID")
+AUTH_TOKEN = os.getenv("AUTH_TOKEN")
+ZYLO_VERIFY_SERVICE_SID = os.getenv("ZYLO_ACCOUNT_SID")
+ZYRAX_VERIFY_SERVICE_SID = os.getenv("ZYLO_ACCOUNT_SID")
