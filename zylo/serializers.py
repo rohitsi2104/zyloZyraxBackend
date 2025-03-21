@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Zylo_Banner, Zylo_Offer, Zylo_Class, UserProfile, CommunityPost, PostImage, Comments, Tutors, \
     Service_Post, \
-    Attendance, UserAdditionalInfo, Zylo_Testimonial, Zylo_CallbackRequest, Zylo_UserMembership
+    Attendance, UserAdditionalInfo, Zylo_Testimonial, Zylo_CallbackRequest, Zylo_UserMembership, Zylo_FAQ, Zylo_Video
 from django.contrib.auth.models import User
 
 
@@ -124,3 +124,16 @@ class Zylo_UserMembershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Zylo_UserMembership
         fields = '__all__'
+
+
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Zylo_Video
+        fields = '__all__'
+
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Zylo_FAQ
+        fields = ['id', 'question', 'answer', 'created_at']

@@ -11,11 +11,12 @@ import logging
 from django import forms
 from django.contrib import messages
 from .models import Zylo_Banner, Zylo_Offer, CommunityPost, PostImage, Comments, UserProfile, Zylo_Class, Tutors, \
-    Service_Post, Attendance, UserAdditionalInfo, Zylo_Testimonial, Zylo_CallbackRequest, Zylo_UserMembership
+    Service_Post, Attendance, UserAdditionalInfo, Zylo_Testimonial, Zylo_CallbackRequest, Zylo_UserMembership, Zylo_FAQ, \
+    Zylo_Video
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
     FullUserProfileSerializer, UserAdditionalInfoSerializer, Zylo_TestionialSerializer, Zylo_CallbackRequestSerializer, \
-    Zylo_UserMembershipSerializer
+    Zylo_UserMembershipSerializer, VideoSerializer
 
 from zyrax.models import PatymentRecord
 from django.contrib.auth.models import User
@@ -671,3 +672,44 @@ def reset_password(request):
     cache.delete(f'otp_{phone_number}')
 
     return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+def get_all_videos(request):
+    """
+    API to get all videos, requires authentication.
+    """
+    videos = Zylo_Video.objects.all()
+
+    if not videos.exists():
+        return Response({'message': 'No videos found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = VideoSerializer(videos, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+def get_all_faqs(request):
+    """
+    API to get all FAQs, requires authentication.
+    """
+    faqs = Zylo_FAQ.objects.all()
+
+    if not faqs.exists():
+        return Response({'message': 'No FAQs found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Serialize the data
+    faq_data = []
+    for faq in faqs:
+        faq_data.append({
+            'id': faq.id,
+            'question': faq.question,
+            'answer': faq.answer,
+            'created_at': faq.created_at
+        })
+
+    return Response(faq_data, status=status.HTTP_200_OK)

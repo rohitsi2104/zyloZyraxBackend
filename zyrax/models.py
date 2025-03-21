@@ -255,6 +255,33 @@ class InactiveUserMembership(UserMembership):
         verbose_name_plural = "Inactive Subscribers"
 
 
+# class Video(models.Model):
+#     title = models.CharField(max_length=255)
+#     video_link = models.URLField(max_length=500)
+#     uploaded_at = models.DateTimeField(auto_now_add=True)
+#
+#     def __str__(self):
+#         return self.title
+class Video(models.Model):
+    title = models.CharField(max_length=255, null=True, blank=True)  # ✅ Title is optional
+    video_link = models.URLField(max_length=500)
+    description = models.TextField(max_length=255, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return self.title if self.title else "Untitled Video"  # Handle NULL title display
+
+
+class FAQ(models.Model):
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.question
+
+
 # class OTP(models.Model):
 #     phone_number = models.CharField(max_length=15, unique=True)
 #     otp = models.CharField(max_length=6)

@@ -226,3 +226,26 @@ class InactiveUserMembership(Zylo_UserMembership):
         proxy = True
         verbose_name = "Inactive Subscriber"
         verbose_name_plural = "Inactive Subscribers"
+
+
+class Zylo_Video(models.Model):
+    title = models.CharField(max_length=255, null=True, blank=True)  # ✅ Title is optional
+    video_link = models.URLField(max_length=500)
+    description = models.TextField(max_length=255, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return self.title if self.title else "Untitled Video"  # Handle NULL title display
+
+
+class Zylo_FAQ(models.Model):
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.question
+
+
+
