@@ -42,10 +42,6 @@ ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 ZYRAX_VERIFY_SERVICE_SID = os.getenv('ZYRAX_ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 
-print("..................................................................................",ACCOUNT_SID)
-print("..................................................................................",ZYRAX_VERIFY_SERVICE_SID)
-print("..................................................................................",AUTH_TOKEN)
-
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 
@@ -84,36 +80,6 @@ def create_staff_user(request):
 
     return render(request, "create_staff_user.html", {"form": form})
 
-
-# Function to send OTP via Msg91
-# def send_otp(phone_number, otp):
-#     conn = http.client.HTTPSConnection("control.msg91.com")
-#     payload = json.dumps({
-#         "otp": otp,
-#         "mobile": phone_number,
-#         "template_id": YOUR_TEMPLATE_ID,
-#         "authkey": AUTH_KEY,
-#         "otp_expiry": 15
-#     })
-#     url = f"/api/v5/otp?template_id=YOUR_TEMPLATE_ID&mobile={phone_number}&authkey={AUTH_KEY}&otp_expiry=15"
-#     conn.request("POST", url, payload, headers={"Content-Type": "application/json"})
-#     res = conn.getresponse()
-#     data = res.read()
-#     return json.loads(data.decode("utf-8"))
-
-# def send_otp(phone_number, otp):
-#     try:
-#         # Send OTP using Twilio Verify API
-#         verification = client.verify \
-#             .v2 \
-#             .services(ZYRAX_VERIFY_SERVICE_SID) \
-#             .verifications \
-#             .create(to=phone_number, channel='sms', custom_code=otp)
-#
-#         # Return the verification SID as confirmation
-#         return {"status": "success", "verification_sid": verification.sid, "message": "OTP sent successfully"}
-#     except Exception as e:
-#         return {"status": "error", "message": str(e)}
 
 def send_otp(phone_number):
     try:
@@ -195,7 +161,6 @@ def get_classes(request):
     return Response(serializer.data)
 
 
-# User Registration API (via OTP)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -213,7 +178,7 @@ def register(request):
         if User.objects.filter(username=phone_number).exists():
             return Response({"error": "Phone number already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
+        otp = str(random.randint(100000, 999999))
         cache.set(f'otp_{phone_number}', otp, timeout=300)
         send_otp(phone_number)
         print(otp)
@@ -236,14 +201,10 @@ def register(request):
 def verify_otp(request):
     phone_number = request.data.get('phone_number')
     otp_entered = request.data.get('otp')
-    print("..................................................................................", ACCOUNT_SID)
-    print("..................................................................................", ZYRAX_VERIFY_SERVICE_SID)
-    print("..................................................................................", AUTH_TOKEN)
     if not phone_number or not otp_entered:
         return Response({"error": "Phone number and OTP are required"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        # Verify OTP using Twilio API
         verification_check = client.verify \
             .v2 \
             .services(ZYRAX_VERIFY_SERVICE_SID) \
@@ -283,80 +244,6 @@ def verify_otp(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
-
-#
-# # Verify OTP
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def verify_otp(request):
-#     phone_number = request.data.get('phone_number')
-#     otp_entered = request.data.get('otp')
-#     stored_otp = cache.get(f'otp_{phone_number}')
-#
-#     if stored_otp and stored_otp == otp_entered:
-#         registration_data = cache.get(f'registration_data_{phone_number}')
-#         if registration_data:
-#             user = User.objects.create_user(
-#                 username=phone_number,
-#                 password=registration_data['password'],
-#                 first_name=registration_data['first_name'],
-#                 last_name=registration_data['last_name']
-#             )
-#             UserProfile.objects.create(
-#                 user=user,
-#                 first_name=registration_data['first_name'],
-#                 last_name=registration_data['last_name'],
-#                 phone_number=phone_number,
-#                 date_of_birth=registration_data['date_of_birth']
-#             )
-#             cache.delete(f'registration_data_{phone_number}')
-#             return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
-#     else:
-#         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def verify_otp(request):
-#     phone_number = request.data.get('phone_number')
-#     otp_entered = request.data.get('otp')
-#     stored_otp = cache.get(f'otp_{phone_number}')
-#
-#     if stored_otp and stored_otp == otp_entered:
-#         registration_data = cache.get(f'registration_data_{phone_number}')
-#         if registration_data:
-#             # Create the user
-#             user = User.objects.create_user(
-#                 username=phone_number,
-#                 password=registration_data['password'],
-#                 first_name=registration_data['first_name'],
-#                 last_name=registration_data['last_name']
-#             )
-#
-#             # Logging to confirm user creation
-#             logging.info(f"User created: {user.username}")
-#
-#             # Create UserProfile
-#             UserProfile.objects.create(
-#                 user=user,
-#                 first_name=registration_data['first_name'],
-#                 last_name=registration_data['last_name'],
-#                 phone_number=phone_number,
-#                 date_of_birth=registration_data['date_of_birth']
-#             )
-#
-#             # Clear cache
-#             cache.delete(f'registration_data_{phone_number}')
-#
-#             return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({"error": "No registration data found"}, status=status.HTTP_400_BAD_REQUEST)
-#     else:
-#         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Admin Register User API (no OTP)
@@ -654,68 +541,6 @@ def create_subscription(request):
                     status=status.HTTP_201_CREATED)
 
 
-#
-# @api_view(["POST"])
-# def verify_and_subscribe(request):
-#     phone_number = request.data.get("phone_number")
-#     user_id = request.data.get("user_id")
-#     offer_id = request.data.get("offer_id")
-#
-#     if not phone_number or not user_id or not offer_id:
-#         return Response(
-#             {"error": "phone_number, user_id, and offer_id are required"},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-#
-#     # Verify latest successful payment
-#     transaction = PatymentRecord.objects.filter(
-#         phone=phone_number, status="success"
-#     ).order_by("-addedon").first()
-#
-#     if not transaction:
-#         return Response(
-#             {"error": "No successful payment found for this phone number"},
-#             status=status.HTTP_404_NOT_FOUND
-#         )
-#
-#     # Get user and offer
-#     user = get_object_or_404(User, id=user_id)
-#     offer = get_object_or_404(Offer, id=offer_id)
-#
-#     # Create subscription with correct timezone handling
-#     start_date = timezone.now()  # ✅ Use timezone.now() explicitly
-#     end_date = start_date + timedelta(days=offer.duration)
-#
-#     subscription = UserMembership.objects.create(
-#         user=user,
-#         offer=offer,
-#         transaction_id=transaction.txnid,
-#         amount_paid=offer.amount,
-#         start_date=start_date,
-#         end_date=end_date,
-#         is_active=True
-#     )
-#
-#     # Serialize subscription data
-#     subscription_data = {
-#         "subscription_id": subscription.id,
-#         "user_id": subscription.user.id,
-#         "offer_id": subscription.offer.id,
-#         "transaction_id": subscription.transaction_id,
-#         "amount_paid": str(subscription.amount_paid),
-#         "start_date": subscription.start_date.strftime("%Y-%m-%d"),
-#         "end_date": subscription.end_date.strftime("%Y-%m-%d"),
-#         "is_active": subscription.is_active
-#     }
-#
-#     return Response(
-#         {
-#             "message": "Subscription created successfully",
-#             "subscription": subscription_data
-#         },
-#         status=status.HTTP_201_CREATED
-#     )
-
 
 @api_view(["POST"])
 def verify_and_subscribe(request):
@@ -877,26 +702,6 @@ def subscription_form(request):
     return render(request, "subscription_form.html", {"users": users, "offers": offers, "subscriptions": subscriptions})
 
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def get_user_subscription(request):
-#     user_id = request.data.get('user_id')
-#     if not user_id:
-#         return Response({'error': 'User ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-#
-#     try:
-#         user = User.objects.get(id=user_id)
-#     except User.DoesNotExist:
-#         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-#
-#     subscriptions = UserMembership.objects.filter(user=user)
-#     if not subscriptions.exists():
-#         return Response({'message': 'No active subscriptions found'}, status=status.HTTP_404_NOT_FOUND)
-#
-#     serializer = UserMembershipSerializer(subscriptions, many=True)
-#     return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_subscription(request):
@@ -930,34 +735,6 @@ def forgot_password(request):
     send_otp(phone_number)
 
     return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
-
-#
-# @api_view(['POST'])
-# @authentication_classes([])
-# @permission_classes([AllowAny])
-# def reset_password(request):
-#     phone_number = request.data.get("phone_number")
-#     otp = request.data.get("otp")
-#     new_password = request.data.get("new_password")
-#
-#     if not phone_number or not otp or not new_password:
-#         return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#     cached_otp = cache.get(f'otp_{phone_number}')
-#     if not cached_otp or cached_otp != otp:
-#         return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#     try:
-#         user = User.objects.get(username=phone_number)
-#     except User.DoesNotExist:
-#         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-#
-#     user.password = make_password(new_password)
-#     user.save()
-#     cache.delete(f'otp_{phone_number}')
-#
-#     return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
-
 
 
 @api_view(['POST'])
