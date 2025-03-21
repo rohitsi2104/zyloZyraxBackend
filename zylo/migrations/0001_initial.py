@@ -186,4 +186,43 @@ class Migration(migrations.Migration):
                 'unique_together': {('user', 'date')},
             },
         ),
+        migrations.CreateModel(
+            name='Zylo_UserMembership',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('transaction_id', models.CharField(max_length=100, unique=True)),
+                ('amount_paid', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('start_date', models.DateTimeField(default=django.template.defaulttags.now)),
+                ('end_date', models.DateTimeField()),
+                ('is_active', models.BooleanField(default=True)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('zylo_offer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='zylo.zylo_offer')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ActiveUserMembership',
+            fields=[
+            ],
+            options={
+                'verbose_name': 'Active Subscriber',
+                'verbose_name_plural': 'Active Subscribers',
+                'proxy': True,
+                'indexes': [],
+                'constraints': [],
+            },
+            bases=('zylo.zylo_usermembership',),
+        ),
+        migrations.CreateModel(
+            name='InactiveUserMembership',
+            fields=[
+            ],
+            options={
+                'verbose_name': 'Inactive Subscriber',
+                'verbose_name_plural': 'Inactive Subscribers',
+                'proxy': True,
+                'indexes': [],
+                'constraints': [],
+            },
+            bases=('zylo.zylo_usermembership',),
+        ),
     ]

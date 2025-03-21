@@ -25,7 +25,9 @@ from .views import (
     subscription_form,
     get_user_subscription,
     forgot_password,
-    reset_password
+    reset_password,
+    get_all_videos,
+    get_all_faqs
 )
 
 
@@ -58,5 +60,7 @@ urlpatterns = [
     path("fetch-subscription/", get_user_subscription, name="get_user_subscription"),
     path("forgot-password/", forgot_password, name="forgot_password"),
     path("reset_password/", reset_password, name="reset_password"),
+    path('videoUrl/', get_all_videos, name='get-all-videos'),  # List and Create
+    path('faq/', get_all_faqs, name='get-all-faqs'),
 
 ]

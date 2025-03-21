@@ -2,7 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
 from django.utils.timezone import now
-from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership,ActiveUserMembership, InactiveUserMembership
+from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
+    ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership, ActiveUserMembership, InactiveUserMembership, \
+    Video, FAQ
 
 
 # Custom user creation form
@@ -138,4 +140,18 @@ admin.site.register(InactiveUserMembership, InactiveSubscribersAdmin)
 
 
 
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title',)  # Fields shown in the admin panel
+    search_fields = ('title',)  # Search by title and description
+    list_filter = ('uploaded_at',)  # Filter by uploaded date
+    ordering = ('-uploaded_at',)  # Order by most recent videos
 
+
+# Register FAQ model
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ('id', 'question', 'created_at')
+    search_fields = ('question', 'answer')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)

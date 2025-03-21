@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from .models import Zylo_Banner, Zylo_Offer, Zylo_Class, Tutors, Service_Post, Zylo_Testimonial, Zylo_CallbackRequest, \
-    Zylo_UserMembership, ActiveUserMembership, InactiveUserMembership
+    Zylo_UserMembership, ActiveUserMembership, InactiveUserMembership, Zylo_FAQ, Zylo_Video
 
 
 class CustomUserCreationForm(forms.ModelForm):
@@ -107,3 +107,21 @@ class InactiveSubscribersAdmin(admin.ModelAdmin):
 
 admin.site.register(ActiveUserMembership, ActiveSubscribersAdmin)
 admin.site.register(InactiveUserMembership, InactiveSubscribersAdmin)
+
+
+
+@admin.register(Zylo_Video)
+class VideoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title',)  # Fields shown in the admin panel
+    search_fields = ('title',)  # Search by title and description
+    list_filter = ('uploaded_at',)  # Filter by uploaded date
+    ordering = ('-uploaded_at',)  # Order by most recent videos
+
+
+# Register FAQ model
+@admin.register(Zylo_FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ('id', 'question', 'created_at')
+    search_fields = ('question', 'answer')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)

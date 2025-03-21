@@ -6,16 +6,16 @@ from django.utils.dateparse import parse_datetime
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-from rest_framework import status, viewsets, permissions
+from rest_framework import status, viewsets, permissions, generics
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django import forms
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
-    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, UserMembership, PatymentRecord
+    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, UserMembership, PatymentRecord, Video, FAQ
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
-    FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer, \
+    FullUserProfileSerializer, UserAdditionalInfoSerializer, ZyraxTestionialSerializer, CallbackRequestSerializer,VideoSerializer, \
     TransactionSerializer, UserMembershipSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.contrib.auth.models import User
@@ -996,3 +996,42 @@ def reset_password(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_all_videos(request):
+    """
+    API to get all videos, requires authentication.
+    """
+    videos = Video.objects.all()
+
+    if not videos.exists():
+        return Response({'message': 'No videos found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = VideoSerializer(videos, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+def get_all_faqs(request):
+    """
+    API to get all FAQs, requires authentication.
+    """
+    faqs = FAQ.objects.all()
+
+    if not faqs.exists():
+        return Response({'message': 'No FAQs found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Serialize the data
+    faq_data = []
+    for faq in faqs:
+        faq_data.append({
+            'id': faq.id,
+            'question': faq.question,
+            'answer': faq.answer,
+            'created_at': faq.created_at
+        })
+
+    return Response(faq_data, status=status.HTTP_200_OK)
