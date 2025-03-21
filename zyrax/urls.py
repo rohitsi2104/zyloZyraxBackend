@@ -1,5 +1,4 @@
 from django.urls import path
-from setuptools.extern import names
 
 from .views import (
     get_banners,
