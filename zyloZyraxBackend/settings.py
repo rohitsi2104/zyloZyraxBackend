@@ -110,6 +110,8 @@ else:
             'PASSWORD': 'RcbamjLYuaPjxBZeSCfLcaBEnVnBxkuz',
             'HOST': 'meticulous-empathy.railway.internal',
             'PORT': '5432',
+            'CONN_MAX_AGE': 60,
+
         }
     }
 
