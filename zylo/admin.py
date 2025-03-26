@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from .models import Zylo_Banner, Zylo_Offer, Zylo_Class, Tutors, Service_Post, Zylo_Testimonial, Zylo_CallbackRequest, \
-    Zylo_UserMembership, ActiveUserMembership, InactiveUserMembership, Zylo_FAQ, Zylo_Video
+    Zylo_UserMembership, ActiveUserMembership, InactiveUserMembership, Zylo_FAQ, Zylo_Video, Zylo_Rating
 
 
 class CustomUserCreationForm(forms.ModelForm):
@@ -125,3 +125,10 @@ class FAQAdmin(admin.ModelAdmin):
     search_fields = ('question', 'answer')
     list_filter = ('created_at',)
     ordering = ('-created_at',)
+
+@admin.register(Zylo_Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('user', 'score', 'description', 'created_at')  # Fields displayed in the list view
+    list_filter = ('score', 'created_at')  # Add filters for easy navigation
+    search_fields = ('user__username', 'description')  # Searchable fields
+    ordering = ('-created_at',)  # Order by latest ratings

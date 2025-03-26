@@ -289,3 +289,12 @@ class FAQ(models.Model):
 #
 #     def is_valid(self):
 #         return (now() - self.created_at).seconds < 300  # 5 minutes
+
+class Rating(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link rating to a user
+    score = models.IntegerField()  # Rating score between 1-5
+    description = models.TextField(blank=True, null=True)  # New description field
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} rated {self.score} - {self.description[:20]}"

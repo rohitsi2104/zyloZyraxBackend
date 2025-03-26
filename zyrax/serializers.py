@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Banner, Offer, Zyrax_Class, UserProfile, CommunityPost, PostImage, Comment, Tutors, Service_Post, \
-    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership, Video, FAQ
+    Attendance, UserAdditionalInfo, ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership, Video, FAQ, Rating
 from django.contrib.auth.models import User
 
 
@@ -142,3 +142,11 @@ class FAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = FAQ
         fields = ['id', 'question', 'answer', 'created_at']
+        
+        
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = ['id', 'user', 'score', 'description', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at'] 

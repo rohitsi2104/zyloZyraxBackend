@@ -11,12 +11,11 @@ import logging
 from django import forms
 from django.contrib import messages
 from .models import Zylo_Banner, Zylo_Offer, CommunityPost, PostImage, Comments, UserProfile, Zylo_Class, Tutors, \
-    Service_Post, Attendance, UserAdditionalInfo, Zylo_Testimonial, Zylo_CallbackRequest, Zylo_UserMembership, Zylo_FAQ, \
-    Zylo_Video
+    Service_Post, Attendance, UserAdditionalInfo, Zylo_Testimonial, Zylo_CallbackRequest, Zylo_UserMembership, Zylo_FAQ, Zylo_Rating, Zylo_Video
 from .serializers import BannerSerializer, OfferSerializer, CommunityPostSerializer, PostImageSerializer, \
     CommentSerializer, ClassSerializer, TutorProfileSerializer, ServicePostSerializer, AttendanceSerializer, \
     FullUserProfileSerializer, UserAdditionalInfoSerializer, Zylo_TestionialSerializer, Zylo_CallbackRequestSerializer, \
-    Zylo_UserMembershipSerializer, VideoSerializer
+    Zylo_UserMembershipSerializer, VideoSerializer, RatingSerializer
 
 from zyrax.models import PatymentRecord
 from django.contrib.auth.models import User
@@ -731,3 +730,31 @@ def get_all_faqs(request):
         })
 
     return Response(faq_data, status=status.HTTP_200_OK)
+
+
+
+# ✅ Create Rating API
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_rating(request):
+    """
+    Creates a new rating for the authenticated user.
+    """
+    score = request.data.get('score')
+    description = request.data.get('description')
+
+    if not score or not description:
+        return Response({"error": "Score and description are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate rating score range
+    if int(score) < 1 or int(score) > 5:
+        return Response({"error": "Score must be between 1 and 5."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create the rating
+    rating = Zylo_Rating.objects.create(
+        user=request.user,
+        score=score,
+        description=description
+    )
+    serializer = RatingSerializer(rating)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

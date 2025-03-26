@@ -247,5 +247,14 @@ class Zylo_FAQ(models.Model):
     def __str__(self):
         return self.question
 
+class Zylo_Rating(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link rating to a user
+    score = models.IntegerField()  # Rating score between 1-5
+    description = models.TextField(blank=True, null=True)  # New description field
+    created_at = models.DateTimeField(auto_now_add=True)
 
-
+    def __str__(self):
+        return f"{self.user.username} rated {self.score} - {self.description[:20]}"
+    class Meta:
+        verbose_name = "Rating"  # This will display 'Banner' instead of 'Zylo_Banner'
+        verbose_name_plural = "Rating"  #

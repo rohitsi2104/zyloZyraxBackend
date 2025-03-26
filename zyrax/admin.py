@@ -4,7 +4,7 @@ from django import forms
 from django.utils.timezone import now
 from .models import Banner, Offer, CommunityPost, PostImage, Comment, UserProfile, Zyrax_Class, Tutors, Service_Post, \
     ZyraxTestimonial, CallbackRequest, PatymentRecord, UserMembership, ActiveUserMembership, InactiveUserMembership, \
-    Video, FAQ
+    Video, FAQ, Rating
 
 
 # Custom user creation form
@@ -155,3 +155,12 @@ class FAQAdmin(admin.ModelAdmin):
     search_fields = ('question', 'answer')
     list_filter = ('created_at',)
     ordering = ('-created_at',)
+
+
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('user', 'score', 'description', 'created_at')  # Fields displayed in the list view
+    list_filter = ('score', 'created_at')  # Add filters for easy navigation
+    search_fields = ('user__username', 'description')  # Searchable fields
+    ordering = ('-created_at',)  # Order by latest ratings
