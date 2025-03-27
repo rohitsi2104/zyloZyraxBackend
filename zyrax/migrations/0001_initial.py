@@ -256,4 +256,33 @@ class Migration(migrations.Migration):
                 'unique_together': {('user', 'date')},
             },
         ),
+        migrations.AddField(
+            model_name='video',
+            name='description',
+            field=models.TextField(blank=True, max_length=255, null=True),
+        ),
+        migrations.CreateModel(
+            name='UserMembership',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('transaction_id', models.CharField(max_length=100, unique=True)),
+                ('amount_paid', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('start_date', models.DateTimeField(default=django.template.defaulttags.now)),
+                ('end_date', models.DateTimeField()),
+                ('is_active', models.BooleanField(default=True)),
+                ('offer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='zyrax.offer')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Rating',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('score', models.IntegerField()),
+                ('description', models.TextField(blank=True, null=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+
     ]
